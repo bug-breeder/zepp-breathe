@@ -1,39 +1,24 @@
-/**
- * Home page — the "golden example" of a ZUI-based ZeppOS page.
- *
- * Copy this file for new pages. Key patterns:
- *   - Import from 'zeppos-zui' for components and theme tokens
- *   - Parse params in onInit with try/catch guard
- *   - Build UI in build() — runs after onInit
- *   - Call pageRoot.mount() to render
- *   - Call pageRoot.destroy() in onDestroy for cleanup
- *   - Reset all module-level state in onInit (vars persist across page visits)
- */
-
+// pages/home/index.js
 import { CircularLayout, VStack, Text, Button, textColors } from 'zeppos-zui';
-// import { push } from '@zos/router'; // uncomment when you need navigation
+import { push } from '@zos/router';
+import { get, getKey } from '../../utils/storage';
 
-// For raw hmUI widgets (non-ZUI), use COLOR / TYPOGRAPHY from '../../utils/constants';
-
-// Module-level state — MUST be reset in onInit (persists across page visits)
+// Module-level state — reset in onInit (vars persist across page visits)
 let pageRoot = null;
+let streakDays = 0;
+let totalSessions = 0;
 
 Page({
-  onInit(params) {
-    // Reset module-level state
+  onInit() {
     pageRoot = null;
-
-    // Parse navigation params — always guard with try/catch
-    try {
-      const p = params ? JSON.parse(params) : {};
-      console.log('[Home] onInit params:', JSON.stringify(p));
-    } catch {
-      console.log('[Home] onInit: no params');
-    }
+    // Re-read storage every visit so returning from a session shows fresh streak
+    streakDays = get(getKey('streak_days'), 0);
+    totalSessions = get(getKey('total_sessions'), 0);
   },
 
   build() {
-    console.log('[Home] build');
+    const streakText = streakDays > 0 ? `${streakDays} day streak` : 'Start your streak';
+    const sessionText = totalSessions === 1 ? '1 session total' : `${totalSessions} sessions total`;
 
     pageRoot = new CircularLayout({
       safeAreaEnabled: true,
@@ -42,35 +27,34 @@ Page({
       verticalAlignment: 'center',
       children: [
         new VStack({
-          spacing: 24,
+          spacing: 12,
           alignment: 'center',
           children: [
-            // App title
             new Text({
-              text: 'My App',
+              text: 'Breathe',
               textStyle: 'largeTitle',
               fontWeight: 'bold',
               color: textColors.title,
               align: 'center',
             }),
-
-            // Subtitle
             new Text({
-              text: 'Welcome',
+              text: streakText,
               textStyle: 'subheadline',
-              color: textColors.subtitle,
+              color: streakDays > 0 ? 0xff9f0a : textColors.subtitle,
               align: 'center',
             }),
-
-            // Primary action button
+            new Text({
+              text: sessionText,
+              textStyle: 'caption1',
+              color: textColors.caption,
+              align: 'center',
+            }),
             new Button({
-              label: 'Get Started',
+              label: 'Start',
               variant: 'primary',
               size: 'capsule',
               onPress: () => {
-                console.log('[Home] Get Started pressed');
-                // TODO: Navigate to your next page
-                // push({ url: 'pages/next/index', params: JSON.stringify({ key: 'value' }) });
+                push({ url: 'pages/setup/index' });
               },
             }),
           ],
@@ -82,17 +66,9 @@ Page({
   },
 
   onDestroy() {
-    console.log('[Home] onDestroy');
-
-    // Destroy ZUI layout tree (releases widget references)
     if (pageRoot) {
       pageRoot.destroy();
       pageRoot = null;
     }
-
-    // Also clean up if you used:
-    //   offGesture() — from '@zos/interaction'
-    //   offKey()     — from '@zos/interaction'
-    //   vibrator.stop() — if Vibrator was started
   },
 });
