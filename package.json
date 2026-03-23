@@ -1,0 +1,40 @@
+{
+  "name": "my-zeppos-app",
+  "version": "1.0.0",
+  "description": "TODO: Describe your app",
+  "main": "app.js",
+  "engines": {
+    "node": ">=16"
+  },
+  "scripts": {
+    "dev": "zeus dev",
+    "build": "zeus build",
+    "preview": "zeus preview",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "verify": "npm run lint && npm run format:check && zeus build",
+    "prepare": "husky"
+  },
+  "lint-staged": {
+    "*.js": [
+      "eslint --fix",
+      "prettier --write"
+    ]
+  },
+  "author": "TODO: your-name",
+  "license": "ISC",
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@zeppos/device-types": "^3.0.0",
+    "eslint": "^10.0.2",
+    "eslint-config-prettier": "^10.1.8",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.2.7",
+    "prettier": "^3.8.1"
+  },
+  "dependencies": {
+    "zeppos-zui": "^1.0.0"
+  }
+}
