@@ -12,25 +12,26 @@
 
 ## File Map
 
-| Action | Path | Responsibility |
-|---|---|---|
-| **Create** | `utils/techniques.js` | Phase definitions (label, duration, ring state) for all 3 techniques |
-| **Modify** | `app.json` | Register 2 new pages, update app name/description |
-| **Modify** | `pages/home/index.js` | Replace template: streak display + total sessions + Start button |
-| **Create** | `pages/setup/index.js` | Technique picker + rounds picker + Start → Session |
-| **Create** | `pages/session/index.js` | Ring animation, vibration, countdown, completion celebration |
+| Action     | Path                     | Responsibility                                                       |
+| ---------- | ------------------------ | -------------------------------------------------------------------- |
+| **Create** | `utils/techniques.js`    | Phase definitions (label, duration, ring state) for all 3 techniques |
+| **Modify** | `app.json`               | Register 2 new pages, update app name/description                    |
+| **Modify** | `pages/home/index.js`    | Replace template: streak display + total sessions + Start button     |
+| **Create** | `pages/setup/index.js`   | Technique picker + rounds picker + Start → Session                   |
+| **Create** | `pages/session/index.js` | Ring animation, vibration, countdown, completion celebration         |
 
 ---
 
 ## Task 1: Foundation — `utils/techniques.js` + `app.json`
 
 **Files:**
+
 - Create: `utils/techniques.js`
 - Modify: `app.json`
 
 - [ ] **Step 1: Create `utils/techniques.js`**
 
-Each phase has `label` (shown on screen), `s` (seconds), and `ring` (`'large'` or `'small'`). The `ring` field is critical — box breathing has two `HOLD` phases with *different* ring states, so don't infer ring state from label.
+Each phase has `label` (shown on screen), `s` (seconds), and `ring` (`'large'` or `'small'`). The `ring` field is critical — box breathing has two `HOLD` phases with _different_ ring states, so don't infer ring state from label.
 
 ```js
 // utils/techniques.js
@@ -105,11 +106,7 @@ Register the two new pages and update app identity. The `pages/home/index` entry
     "common": {
       "module": {
         "page": {
-          "pages": [
-            "pages/home/index",
-            "pages/setup/index",
-            "pages/session/index"
-          ]
+          "pages": ["pages/home/index", "pages/setup/index", "pages/session/index"]
         },
         "app-service": {
           "services": ["app-service/index"]
@@ -143,6 +140,7 @@ git commit -m "feat: add techniques util and register pages in app.json"
 ## Task 2: Home Page
 
 **Files:**
+
 - Modify: `pages/home/index.js` (replace template entirely)
 
 The home page re-reads storage on every `onInit` — this is intentional so returning from a completed session immediately shows the updated streak.
@@ -151,13 +149,7 @@ The home page re-reads storage on every `onInit` — this is intentional so retu
 
 ```js
 // pages/home/index.js
-import {
-  CircularLayout,
-  VStack,
-  Text,
-  Button,
-  textColors,
-} from 'zeppos-zui';
+import { CircularLayout, VStack, Text, Button, textColors } from 'zeppos-zui';
 import { push } from '@zos/router';
 import { get, getKey } from '../../utils/storage';
 
@@ -175,14 +167,8 @@ Page({
   },
 
   build() {
-    const streakText =
-      streakDays > 0
-        ? `${streakDays} day streak`
-        : 'Start your streak';
-    const sessionText =
-      totalSessions === 1
-        ? '1 session total'
-        : `${totalSessions} sessions total`;
+    const streakText = streakDays > 0 ? `${streakDays} day streak` : 'Start your streak';
+    const sessionText = totalSessions === 1 ? '1 session total' : `${totalSessions} sessions total`;
 
     pageRoot = new CircularLayout({
       safeAreaEnabled: true,
@@ -258,6 +244,7 @@ git commit -m "feat: implement home page with streak display"
 ## Task 3: Setup Page
 
 **Files:**
+
 - Create: `pages/setup/index.js`
 
 The setup page uses a module-level `buildPage()` function that destroys and rebuilds the ZUI tree on each selection change. This is simpler than ZUI reactive state for a 6-item list.
@@ -268,15 +255,7 @@ Navigation: uses `push()` (NOT `replace()`) to go to Session — this is require
 
 ```js
 // pages/setup/index.js
-import {
-  CircularLayout,
-  ScrollView,
-  VStack,
-  Text,
-  Button,
-  ListItem,
-  textColors,
-} from 'zeppos-zui';
+import { CircularLayout, ScrollView, VStack, Text, Button, ListItem, textColors } from 'zeppos-zui';
 import { push } from '@zos/router';
 import { get, getKey } from '../../utils/storage';
 import {
@@ -301,27 +280,29 @@ function buildPage() {
     pageRoot = null;
   }
 
-  const techniqueItems = TECHNIQUE_KEYS.map((key) =>
-    new ListItem({
-      title: TECHNIQUE_NAMES[key],
-      // 'badge' shows a colored dot on the right — used as selected indicator
-      accessory: selectedTechnique === key ? 'badge' : undefined,
-      onPress: () => {
-        selectedTechnique = key;
-        buildPage();
-      },
-    })
+  const techniqueItems = TECHNIQUE_KEYS.map(
+    (key) =>
+      new ListItem({
+        title: TECHNIQUE_NAMES[key],
+        // 'badge' shows a colored dot on the right — used as selected indicator
+        accessory: selectedTechnique === key ? 'badge' : undefined,
+        onPress: () => {
+          selectedTechnique = key;
+          buildPage();
+        },
+      })
   );
 
-  const roundsItems = ROUNDS_OPTIONS.map((r) =>
-    new ListItem({
-      title: `${r} rounds`,
-      accessory: selectedRounds === r ? 'badge' : undefined,
-      onPress: () => {
-        selectedRounds = r;
-        buildPage();
-      },
-    })
+  const roundsItems = ROUNDS_OPTIONS.map(
+    (r) =>
+      new ListItem({
+        title: `${r} rounds`,
+        accessory: selectedRounds === r ? 'badge' : undefined,
+        onPress: () => {
+          selectedRounds = r;
+          buildPage();
+        },
+      })
   );
 
   pageRoot = new CircularLayout({
@@ -420,9 +401,11 @@ git commit -m "feat: implement setup page with technique and rounds picker"
 ## Task 4: Session Page
 
 **Files:**
+
 - Create: `pages/session/index.js`
 
 This is the most complex page. Uses raw `hmUI` widgets for the ring animation. Key rules:
+
 - All module-level state reset in `onInit` (ZeppOS persists module vars across page visits)
 - Two ring widgets pre-created (large + small) — toggle visibility, never resize
 - `sessionComplete` flag guards `onTick` against re-entry after completion
@@ -587,8 +570,7 @@ function onSessionComplete() {
   if (roundCounterWidget) roundCounterWidget.setProperty(hmUI.prop.VISIBLE, false);
 
   // Show completion overlay
-  if (completionCheckWidget)
-    completionCheckWidget.setProperty(hmUI.prop.VISIBLE, true);
+  if (completionCheckWidget) completionCheckWidget.setProperty(hmUI.prop.VISIBLE, true);
   if (completionStreakWidget) {
     completionStreakWidget.setProperty(hmUI.prop.TEXT, `Day ${newStreak}!`);
     completionStreakWidget.setProperty(hmUI.prop.VISIBLE, true);
@@ -805,10 +787,8 @@ Page({
     if (!roundCounterWidget) console.log('[Session] WARNING: roundCounterWidget null');
 
     // Hide completion widgets initially
-    if (completionCheckWidget)
-      completionCheckWidget.setProperty(hmUI.prop.VISIBLE, false);
-    if (completionStreakWidget)
-      completionStreakWidget.setProperty(hmUI.prop.VISIBLE, false);
+    if (completionCheckWidget) completionCheckWidget.setProperty(hmUI.prop.VISIBLE, false);
+    if (completionStreakWidget) completionStreakWidget.setProperty(hmUI.prop.VISIBLE, false);
 
     // Render initial phase state
     updateWidgets();

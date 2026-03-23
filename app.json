@@ -2,7 +2,7 @@
   "configVersion": "v3",
   "app": {
     "appId": 10000001,
-    "appName": "MyApp",
+    "appName": "Breathe",
     "appType": "app",
     "version": {
       "code": 1,
@@ -10,7 +10,7 @@
     },
     "icon": "icon.png",
     "vender": "TODO: your-name",
-    "description": "TODO: Describe your app"
+    "description": "Haptic-guided breathing exercises for ADHD adults"
   },
   "permissions": ["device:os.local_storage", "device:os.alarm", "device:os.bg_service"],
   "runtime": {
@@ -24,7 +24,7 @@
     "common": {
       "module": {
         "page": {
-          "pages": ["pages/home/index"]
+          "pages": ["pages/home/index", "pages/setup/index", "pages/session/index"]
         },
         "app-service": {
           "services": ["app-service/index"]

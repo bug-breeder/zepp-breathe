@@ -31,10 +31,10 @@ Home  ──push()──▶  Setup  ──push()──▶  Session
                      └──────pop()────────┘  (cancel via swipe-down)
 ```
 
-| Page | Path | Purpose |
-|---|---|---|
-| Home | `pages/home/index.js` | Streak display + Start button |
-| Setup | `pages/setup/index.js` | Technique + rounds selection |
+| Page    | Path                     | Purpose                                    |
+| ------- | ------------------------ | ------------------------------------------ |
+| Home    | `pages/home/index.js`    | Streak display + Start button              |
+| Setup   | `pages/setup/index.js`   | Technique + rounds selection               |
 | Session | `pages/session/index.js` | Breathing animation, vibration, completion |
 
 ### Navigation details
@@ -53,11 +53,13 @@ Home  ──push()──▶  Setup  ──push()──▶  Session
 Uses ZUI (`CircularLayout`, `VStack`, `Text`, `Button`).
 
 **Lifecycle:**
+
 - `onInit`: reset `pageRoot = null`; read `streak_days` and `total_sessions` from storage into module-level vars
 - `build()`: build ZUI tree, mount
 - `onDestroy`: `pageRoot.destroy(); pageRoot = null`
 
 **Displays:**
+
 - App name: "Breathe"
 - Streak: "🔥 N days" (or "Start your streak" if 0)
 - Total sessions count
@@ -72,6 +74,7 @@ Uses ZUI (`CircularLayout`, `VStack`, `Text`, `Button`).
 Uses ZUI (`CircularLayout`, `ScrollView`, `VStack`, `SectionHeader`, `ListItem`, `Button`).
 
 **Lifecycle:**
+
 - `onInit`: reset all module-level state (`pageRoot`, `selectedTechnique`, `selectedRounds`); read `last_technique` and `last_rounds` from storage to set initial selections
 - `build()`: build ZUI tree with pre-selected items highlighted, mount
 - `onDestroy`: `pageRoot.destroy(); pageRoot = null`
@@ -79,11 +82,13 @@ Uses ZUI (`CircularLayout`, `ScrollView`, `VStack`, `SectionHeader`, `ListItem`,
 **Two sections:**
 
 **Technique** (3 items, single-select):
+
 - Box 4-4-4-4
 - 4-7-8
 - Simple 4-4
 
 **Rounds** (3 items, single-select):
+
 - 3 rounds
 - 5 rounds
 - 10 rounds
@@ -97,15 +102,16 @@ Pre-selects from `last_technique` (default `'box'`) and `last_rounds` (default `
 Uses raw `hmUI` widgets (not ZUI) for precise control over the ring animation.
 
 **Module-level state (ALL must be reset in `onInit`):**
+
 ```js
 let technique = null;
 let rounds = 0;
 let currentRound = 0;
 let currentPhaseIndex = 0;
 let phaseSecondsLeft = 0;
-let intervalId = null;          // reset to null in onInit
+let intervalId = null; // reset to null in onInit
 let completionTimeoutId = null; // reset to null in onInit; clearTimeout must guard: if (completionTimeoutId) { clearTimeout(completionTimeoutId); completionTimeoutId = null; }
-let sessionComplete = false;    // reset to false in onInit; guards against double-completion
+let sessionComplete = false; // reset to false in onInit; guards against double-completion
 let vibrator = null;
 // widget refs:
 let ringWidget = null;
@@ -116,11 +122,13 @@ let roundCounterWidget = null;
 ```
 
 **Lifecycle:**
+
 - `onInit(params)`: reset all module-level state; parse params: `const { technique: t, rounds: r } = JSON.parse(params || '{}')`, store into module vars; initialize vibrator: `vibrator = new Vibrator()`; start interval: `intervalId = setInterval(onTick, 1000)`; register gesture: `onGesture({ callback: onSwipeDown })`
 - `build()`: create all hmUI widgets (ring, glow ring, phase text, countdown, round counter); **null-check every widget ref after `hmUI.createWidget()` before storing** — a null widget ref passed to `setProperty` causes a silent crash; call `updateWidgets()` to render initial state
 - `onDestroy`: call `clearInterval(intervalId)`; call `if (completionTimeoutId) { clearTimeout(completionTimeoutId); completionTimeoutId = null; }`; call `vibrator.stop()`; call `offGesture({ callback: onSwipeDown })`; null all widget refs and state vars
 
 **Params parsing (in `onInit`):**
+
 ```js
 onInit(params) {
   // reset all module-level state first
@@ -141,6 +149,7 @@ onInit(params) {
 ```
 
 **Visual layout (absolute positioned on 480×480 canvas):**
+
 - Glow ring: `hmUI.widget.ARC`, full 360°, slightly larger than ring, dim green (`0x1a4d2e`) — creates glow effect when ring is large
 - Ring: `hmUI.widget.ARC`, full 360° circle, centered, two discrete sizes
 - Phase label: `hmUI.widget.TEXT`, center, small caps (e.g. "INHALE"), `TYPOGRAPHY.caption`
@@ -148,6 +157,7 @@ onInit(params) {
 - Round counter: `hmUI.widget.TEXT`, center-bottom (e.g. "2 / 5"), `TYPOGRAPHY.caption`
 
 **Ring states (toggled at phase start, not animated continuously):**
+
 - **`ring: 'large'`**: ring x/y/w/h ≈ 40px from edge, bright green (`0x30d158`)
 - **`ring: 'small'`**: ring x/y/w/h ≈ 100px from edge, dimmer green (`0x1a8c3a`)
 
@@ -156,6 +166,7 @@ onInit(params) {
 `updateWidgets()` must guard every widget ref before calling `setProperty`: `if (ringWidget) ringWidget.setProperty(...)`. Never call `setProperty` without a non-null check — it causes a silent crash.
 
 **Tick handler (`onTick`):**
+
 ```
 if sessionComplete: return   // guard: ignore ticks after completion
 
@@ -180,26 +191,31 @@ updateWidgets()
 ```
 
 **Cancellation:** Register as a named function so the same reference can be passed to `offGesture`. Both `onGesture`/`offGesture` and `GESTURE_DOWN` are imported from `@zos/interaction`:
+
 ```js
 import { onGesture, offGesture, GESTURE_DOWN } from '@zos/interaction';
 
 function onSwipeDown(gesture) {
-  if (gesture === GESTURE_DOWN) { pop(); return true; }
+  if (gesture === GESTURE_DOWN) {
+    pop();
+    return true;
+  }
 }
 // in onInit:    onGesture({ callback: onSwipeDown })
 // in onDestroy: offGesture({ callback: onSwipeDown })
 ```
+
 Nothing written to storage on cancel.
 
 ---
 
 ## Breathing Techniques
 
-| Technique | Key | Phases (seconds) | Seconds/round |
-|---|---|---|---|
-| Box 4-4-4-4 | `'box'` | Inhale(4) → Hold(4) → Exhale(4) → Hold(4) | 16s |
-| 4-7-8 | `'478'` | Inhale(4) → Hold(7) → Exhale(8) | 19s |
-| Simple 4-4 | `'simple'` | Inhale(4) → Exhale(4) | 8s |
+| Technique   | Key        | Phases (seconds)                          | Seconds/round |
+| ----------- | ---------- | ----------------------------------------- | ------------- |
+| Box 4-4-4-4 | `'box'`    | Inhale(4) → Hold(4) → Exhale(4) → Hold(4) | 16s           |
+| 4-7-8       | `'478'`    | Inhale(4) → Hold(7) → Exhale(8)           | 19s           |
+| Simple 4-4  | `'simple'` | Inhale(4) → Exhale(4)                     | 8s            |
 
 Phase definition structure in `utils/techniques.js`:
 
@@ -209,13 +225,13 @@ Each phase includes a `ring` field (`'large'` or `'small'`) so `updateWidgets()`
 export const TECHNIQUES = {
   box: [
     { label: 'INHALE', s: 4, ring: 'large' },
-    { label: 'HOLD',   s: 4, ring: 'large' },   // hold after inhale — lungs full
+    { label: 'HOLD', s: 4, ring: 'large' }, // hold after inhale — lungs full
     { label: 'EXHALE', s: 4, ring: 'small' },
-    { label: 'HOLD',   s: 4, ring: 'small' },   // hold after exhale — lungs empty
+    { label: 'HOLD', s: 4, ring: 'small' }, // hold after exhale — lungs empty
   ],
-  '478': [
+  478: [
     { label: 'INHALE', s: 4, ring: 'large' },
-    { label: 'HOLD',   s: 7, ring: 'large' },
+    { label: 'HOLD', s: 7, ring: 'large' },
     { label: 'EXHALE', s: 8, ring: 'small' },
   ],
   simple: [
@@ -225,8 +241,8 @@ export const TECHNIQUES = {
 };
 
 export const TECHNIQUE_NAMES = {
-  box:    'Box 4-4-4-4',
-  '478':  '4-7-8',
+  box: 'Box 4-4-4-4',
+  478: '4-7-8',
   simple: 'Simple 4-4',
 };
 ```
@@ -237,11 +253,11 @@ export const TECHNIQUE_NAMES = {
 
 Fired at the **start of each phase** (when `phaseSecondsLeft` is initialized for a new phase). Uses `Vibrator` from `@zos/sensor`.
 
-| Phase | Pattern | Intent |
-|---|---|---|
-| INHALE | `PULSE` (gentle, ~300ms) | "Start breathing in" |
-| HOLD | `STRONG_SHORT` (single buzz) | "Hold now" |
-| EXHALE | Two `PULSE` with short gap | "Start breathing out" |
+| Phase  | Pattern                      | Intent                |
+| ------ | ---------------------------- | --------------------- |
+| INHALE | `PULSE` (gentle, ~300ms)     | "Start breathing in"  |
+| HOLD   | `STRONG_SHORT` (single buzz) | "Hold now"            |
+| EXHALE | Two `PULSE` with short gap   | "Start breathing out" |
 
 The first phase of round 1 also vibrates at session start (on entering first phase in `onInit`).
 
@@ -266,13 +282,13 @@ When `onSessionComplete()` fires:
 
 All reads/writes use `utils/storage.js` (`get`, `set`, `getKey`).
 
-| Key | Type | Default | Description |
-|---|---|---|---|
-| `last_technique` | `string` | `'box'` | Pre-selects technique on Setup |
-| `last_rounds` | `number` | `5` | Pre-selects rounds on Setup |
-| `total_sessions` | `number` | `0` | Lifetime completed sessions |
-| `streak_days` | `number` | `0` | Current consecutive-day streak |
-| `last_session_date` | `string` | `''` | Last completed session date, format `'YYYY-MM-DD'` |
+| Key                 | Type     | Default | Description                                        |
+| ------------------- | -------- | ------- | -------------------------------------------------- |
+| `last_technique`    | `string` | `'box'` | Pre-selects technique on Setup                     |
+| `last_rounds`       | `number` | `5`     | Pre-selects rounds on Setup                        |
+| `total_sessions`    | `number` | `0`     | Lifetime completed sessions                        |
+| `streak_days`       | `number` | `0`     | Current consecutive-day streak                     |
+| `last_session_date` | `string` | `''`    | Last completed session date, format `'YYYY-MM-DD'` |
 
 ### Streak calculation (on session complete)
 
@@ -323,9 +339,9 @@ function getYesterdayString() {
     mo -= 1;
     if (mo < 1) {
       mo = 12;
-      y -= 1;   // year rollover: Jan 1 → Dec 31 of previous year
+      y -= 1; // year rollover: Jan 1 → Dec 31 of previous year
     }
-    d = (mo === 2 && isLeapYear(y)) ? 29 : DAYS_IN_MONTH[mo];
+    d = mo === 2 && isLeapYear(y) ? 29 : DAYS_IN_MONTH[mo];
   }
   return `${y}-${String(mo).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
 }
@@ -340,6 +356,7 @@ Both functions return `'YYYY-MM-DD'` strings. Comparison is strict string equali
 **Verify `device:os.local_storage` is present** in the `permissions` array (it is in the template but confirm before building).
 
 **Pages to register:**
+
 ```json
 "pages": [
   "pages/home/index",
@@ -349,6 +366,7 @@ Both functions return `'YYYY-MM-DD'` strings. Comparison is strict string equali
 ```
 
 **App metadata:**
+
 ```json
 "appName": "Breathe",
 "description": "Haptic-guided breathing exercises for ADHD adults"
