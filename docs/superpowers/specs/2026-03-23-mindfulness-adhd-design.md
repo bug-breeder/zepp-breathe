@@ -25,8 +25,10 @@ A breathing exercise app designed for ADHD adults. The core experience is haptic
 Three pages, linear navigation:
 
 ```
-Home → Setup → Session → (replace) → Home
-                ↑ (pop on swipe-down cancel → lands back on Setup)
+Home  ──push()──▶  Setup  ──push()──▶  Session
+ ▲                   ▲                    │
+ └────replace()───────────────────────────┘  (complete)
+                     └──────pop()────────┘  (cancel via swipe-down)
 ```
 
 | Page | Path | Purpose |
@@ -101,9 +103,9 @@ let rounds = 0;
 let currentRound = 0;
 let currentPhaseIndex = 0;
 let phaseSecondsLeft = 0;
-let intervalId = null;
-let completionTimeoutId = null;
-let sessionComplete = false;   // guard against double-completion
+let intervalId = null;          // reset to null in onInit
+let completionTimeoutId = null; // reset to null in onInit; clearTimeout must guard: if (completionTimeoutId) { clearTimeout(completionTimeoutId); completionTimeoutId = null; }
+let sessionComplete = false;    // reset to false in onInit; guards against double-completion
 let vibrator = null;
 // widget refs:
 let ringWidget = null;
@@ -116,7 +118,7 @@ let roundCounterWidget = null;
 **Lifecycle:**
 - `onInit(params)`: reset all module-level state; parse params: `const { technique: t, rounds: r } = JSON.parse(params || '{}')`, store into module vars; initialize vibrator: `vibrator = new Vibrator()`; start interval: `intervalId = setInterval(onTick, 1000)`; register gesture: `onGesture({ callback: onSwipeDown })`
 - `build()`: create all hmUI widgets (ring, glow ring, phase text, countdown, round counter); **null-check every widget ref after `hmUI.createWidget()` before storing** — a null widget ref passed to `setProperty` causes a silent crash; call `updateWidgets()` to render initial state
-- `onDestroy`: call `clearInterval(intervalId)`; call `clearTimeout(completionTimeoutId)`; call `vibrator.stop()`; call `offGesture({ callback: onSwipeDown })`; null all widget refs and state vars
+- `onDestroy`: call `clearInterval(intervalId)`; call `if (completionTimeoutId) { clearTimeout(completionTimeoutId); completionTimeoutId = null; }`; call `vibrator.stop()`; call `offGesture({ callback: onSwipeDown })`; null all widget refs and state vars
 
 **Params parsing (in `onInit`):**
 ```js
@@ -146,8 +148,10 @@ onInit(params) {
 - Round counter: `hmUI.widget.TEXT`, center-bottom (e.g. "2 / 5"), `TYPOGRAPHY.caption`
 
 **Ring states (toggled at phase start, not animated continuously):**
-- **Large** (INHALE + post-inhale HOLD): ring x/y/w/h ≈ 40px from edge, bright green (`0x30d158`)
-- **Small** (EXHALE + post-exhale HOLD): ring x/y/w/h ≈ 100px from edge, dimmer green (`0x1a8c3a`)
+- **`ring: 'large'`**: ring x/y/w/h ≈ 40px from edge, bright green (`0x30d158`)
+- **`ring: 'small'`**: ring x/y/w/h ≈ 100px from edge, dimmer green (`0x1a8c3a`)
+
+`updateWidgets()` reads `TECHNIQUES[technique][currentPhaseIndex].ring` to set ring size — **never infer from label**. This correctly handles the two HOLD phases in `box` (different ring states despite same label).
 
 `updateWidgets()` must guard every widget ref before calling `setProperty`: `if (ringWidget) ringWidget.setProperty(...)`. Never call `setProperty` without a non-null check — it causes a silent crash.
 
@@ -175,12 +179,14 @@ vibrateForPhase(phases[currentPhaseIndex].label)
 updateWidgets()
 ```
 
-**Cancellation:** Register as a named function so the same reference can be passed to `offGesture`:
+**Cancellation:** Register as a named function so the same reference can be passed to `offGesture`. Both `onGesture`/`offGesture` and `GESTURE_DOWN` are imported from `@zos/interaction`:
 ```js
+import { onGesture, offGesture, GESTURE_DOWN } from '@zos/interaction';
+
 function onSwipeDown(gesture) {
   if (gesture === GESTURE_DOWN) { pop(); return true; }
 }
-// in onInit: onGesture({ callback: onSwipeDown })
+// in onInit:    onGesture({ callback: onSwipeDown })
 // in onDestroy: offGesture({ callback: onSwipeDown })
 ```
 Nothing written to storage on cancel.
@@ -197,11 +203,25 @@ Nothing written to storage on cancel.
 
 Phase definition structure in `utils/techniques.js`:
 
+Each phase includes a `ring` field (`'large'` or `'small'`) so `updateWidgets()` can determine ring size by index without inferring from label. This is necessary because `box` has two `HOLD` phases with different ring states (HOLD after inhale = large; HOLD after exhale = small) — the label alone cannot distinguish them.
+
 ```js
 export const TECHNIQUES = {
-  box:    [{ label: 'INHALE', s: 4 }, { label: 'HOLD', s: 4 }, { label: 'EXHALE', s: 4 }, { label: 'HOLD', s: 4 }],
-  '478':  [{ label: 'INHALE', s: 4 }, { label: 'HOLD', s: 7 }, { label: 'EXHALE', s: 8 }],
-  simple: [{ label: 'INHALE', s: 4 }, { label: 'EXHALE', s: 4 }],
+  box: [
+    { label: 'INHALE', s: 4, ring: 'large' },
+    { label: 'HOLD',   s: 4, ring: 'large' },   // hold after inhale — lungs full
+    { label: 'EXHALE', s: 4, ring: 'small' },
+    { label: 'HOLD',   s: 4, ring: 'small' },   // hold after exhale — lungs empty
+  ],
+  '478': [
+    { label: 'INHALE', s: 4, ring: 'large' },
+    { label: 'HOLD',   s: 7, ring: 'large' },
+    { label: 'EXHALE', s: 8, ring: 'small' },
+  ],
+  simple: [
+    { label: 'INHALE', s: 4, ring: 'large' },
+    { label: 'EXHALE', s: 4, ring: 'small' },
+  ],
 };
 
 export const TECHNIQUE_NAMES = {
@@ -301,7 +321,10 @@ function getYesterdayString() {
   let d = t.getDate() - 1;
   if (d < 1) {
     mo -= 1;
-    if (mo < 1) { mo = 12; y -= 1; }
+    if (mo < 1) {
+      mo = 12;
+      y -= 1;   // year rollover: Jan 1 → Dec 31 of previous year
+    }
     d = (mo === 2 && isLeapYear(y)) ? 29 : DAYS_IN_MONTH[mo];
   }
   return `${y}-${String(mo).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
