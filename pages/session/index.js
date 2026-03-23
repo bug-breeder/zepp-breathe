@@ -88,8 +88,8 @@ function vibrateForPhase(label) {
         { type: type.PULSE, duration: 200 },
       ]);
     }
-  } catch {
-    console.log('[Session] vibration error');
+  } catch (e) {
+    console.log('[Session] vibration error', e);
   }
 }
 
@@ -119,6 +119,7 @@ function updateWidgets() {
 // ─── Session completion ───────────────────────────────────────────────────────
 
 function onSessionComplete() {
+  offGesture({ callback: onSwipeDown });
   sessionComplete = true; // guard onTick against re-entry
   clearInterval(intervalId);
   intervalId = null;
@@ -258,8 +259,7 @@ Page({
     vibrator = new Vibrator();
     vibrateForPhase(phases[0].label);
 
-    // Start tick and gesture
-    intervalId = setInterval(onTick, 1000);
+    // Start gesture (interval started in build, after widgets are created)
     onGesture({ callback: onSwipeDown });
   },
 
@@ -375,6 +375,7 @@ Page({
 
     // Render initial phase state
     updateWidgets();
+    intervalId = setInterval(onTick, 1000);
   },
 
   onDestroy() {
