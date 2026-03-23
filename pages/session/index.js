@@ -239,7 +239,7 @@ Page({
     try {
       const p = params ? JSON.parse(params) : {};
       technique = p.technique || 'box';
-      rounds = typeof p.rounds === 'number' ? p.rounds : 5;
+      rounds = p.rounds || 5;
     } catch {
       technique = 'box';
       rounds = 5;
@@ -344,7 +344,7 @@ Page({
       y: 160,
       w: 480,
       h: 80,
-      text: 'Done',
+      text: '✓',
       text_size: TYPOGRAPHY.title,
       color: COLOR.PRIMARY,
       align_h: hmUI.align.CENTER_H,
