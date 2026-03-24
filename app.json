@@ -24,7 +24,12 @@
     "common": {
       "module": {
         "page": {
-          "pages": ["pages/home/index", "pages/setup/index", "pages/session/index"]
+          "pages": [
+            "pages/home/index",
+            "pages/setup/index",
+            "pages/session/index",
+            "pages/stats/index"
+          ]
         },
         "app-service": {
           "services": ["app-service/index"]

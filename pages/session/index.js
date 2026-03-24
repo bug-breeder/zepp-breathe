@@ -1,45 +1,12 @@
 // pages/session/index.js
 import hmUI from '@zos/ui';
 import { replace, pop } from '@zos/router';
-import { Vibrator, Time } from '@zos/sensor';
+import { Vibrator } from '@zos/sensor';
 import { onGesture, offGesture, GESTURE_DOWN } from '@zos/interaction';
 import { TECHNIQUES } from '../../utils/techniques';
 import { COLOR, TYPOGRAPHY } from '../../utils/constants';
 import { get, set, getKey } from '../../utils/storage';
-
-// ─── Date helpers ────────────────────────────────────────────────────────────
-// Do NOT use new Date() — ZeppOS QuickJS may not include the Date constructor.
-// Use @zos/sensor Time class only.
-
-const DAYS_IN_MONTH = [0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
-
-function isLeapYear(y) {
-  return (y % 4 === 0 && y % 100 !== 0) || y % 400 === 0;
-}
-
-function getDateString() {
-  const t = new Time();
-  const y = t.getFullYear();
-  const m = String(t.getMonth() + 1).padStart(2, '0');
-  const d = String(t.getDate()).padStart(2, '0');
-  return `${y}-${m}-${d}`;
-}
-
-function getYesterdayString() {
-  const t = new Time();
-  let y = t.getFullYear();
-  let mo = t.getMonth() + 1; // 1-12
-  let d = t.getDate() - 1;
-  if (d < 1) {
-    mo -= 1;
-    if (mo < 1) {
-      mo = 12;
-      y -= 1; // year rollover: Jan 1 → Dec 31 of previous year
-    }
-    d = mo === 2 && isLeapYear(y) ? 29 : DAYS_IN_MONTH[mo];
-  }
-  return `${y}-${String(mo).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-}
+import { getDateString, getYesterdayString, getDateNDaysAgo } from '../../utils/date';
 
 // ─── Ring geometry (pre-computed, never changes) ─────────────────────────────
 // Two rings are created — large and small. Visibility is toggled per phase.
@@ -144,6 +111,18 @@ function onSessionComplete() {
   set(getKey('total_sessions'), get(getKey('total_sessions'), 0) + 1);
   set(getKey('last_technique'), technique);
   set(getKey('last_rounds'), rounds);
+
+  // Per-day history for heatmap — { 'YYYY-MM-DD': count }
+  const historyKey = getKey('session_history');
+  const history = get(historyKey, {});
+  history[today] = (history[today] || 0) + 1;
+  // Prune to last 35 days (28 heatmap + 7-day buffer)
+  const pruned = {};
+  for (let n = 0; n <= 35; n++) {
+    const dk = getDateNDaysAgo(n);
+    if (history[dk] !== undefined) pruned[dk] = history[dk];
+  }
+  set(historyKey, pruned);
 
   // Hide session widgets
   if (ringLargeWidget) ringLargeWidget.setProperty(hmUI.prop.VISIBLE, false);

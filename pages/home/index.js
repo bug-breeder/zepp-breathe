@@ -73,6 +73,23 @@ Page({
         push({ url: 'pages/setup/index' });
       },
     });
+
+    // "Stats" button
+    hmUI.createWidget(hmUI.widget.BUTTON, {
+      x: 165,
+      y: 362,
+      w: 150,
+      h: 40,
+      radius: 20,
+      normal_color: 0x1c1c1e,
+      press_color: 0x2c2c2e,
+      text: 'Stats',
+      text_size: 20,
+      color: 0x8e8e93,
+      click_func: () => {
+        push({ url: 'pages/stats/index' });
+      },
+    });
   },
 
   onDestroy() {},
