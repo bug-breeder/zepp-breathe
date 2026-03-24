@@ -1,6 +1,10 @@
 // pages/setup/index.js
+import hmUI from '@zos/ui'; // required: zeppos-zui accesses hmUI as a global
 import { CircularLayout, ScrollView, VStack, Text, Button, ListItem, textColors } from 'zeppos-zui';
 import { push } from '@zos/router';
+
+// Make hmUI available as a global so zeppos-zui's createWidget can find it.
+globalThis.hmUI = hmUI;
 import { get, getKey } from '../../utils/storage';
 import {
   TECHNIQUE_NAMES,

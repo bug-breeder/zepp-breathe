@@ -1,7 +1,12 @@
 // pages/home/index.js
+import hmUI from '@zos/ui'; // required: zeppos-zui accesses hmUI as a global
 import { CircularLayout, VStack, Text, Button, textColors } from 'zeppos-zui';
 import { push } from '@zos/router';
 import { get, getKey } from '../../utils/storage';
+
+// Make hmUI available as a global so zeppos-zui's createWidget can find it.
+// ZUI checks `typeof hmUI !== 'undefined'` — without this it falls back to mock widgets.
+globalThis.hmUI = hmUI;
 
 // Module-level state — reset in onInit (vars persist across page visits)
 let pageRoot = null;
