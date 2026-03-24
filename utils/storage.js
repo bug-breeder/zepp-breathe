@@ -17,7 +17,20 @@
 
 import { LocalStorage } from '@zos/storage';
 
-const storage = new LocalStorage();
+// Lazy-initialized — new LocalStorage() can throw on first run if no storage file exists.
+// Keeping it out of module scope prevents a module-load crash that causes a black screen.
+let _storage = null;
+
+function getStorage() {
+  if (!_storage) {
+    try {
+      _storage = new LocalStorage();
+    } catch (e) {
+      console.log('storage init error:', e);
+    }
+  }
+  return _storage;
+}
 
 // Set to true to prefix all keys with 'dev_' for separate dev/prod data.
 const DEV_MODE = false;
@@ -41,7 +54,9 @@ export function getKey(baseKey) {
  */
 export function get(key, defaultValue) {
   try {
-    return storage.getItem(key, defaultValue);
+    const s = getStorage();
+    if (!s) return defaultValue;
+    return s.getItem(key, defaultValue);
   } catch (e) {
     console.log('storage.get error:', key, e);
     return defaultValue;
@@ -56,7 +71,9 @@ export function get(key, defaultValue) {
  */
 export function set(key, value) {
   try {
-    storage.setItem(key, value);
+    const s = getStorage();
+    if (!s) return;
+    s.setItem(key, value);
   } catch (e) {
     console.log('storage.set error:', key, e);
   }

@@ -17,6 +17,7 @@ Page({
   },
 
   build() {
+    console.log('[Home] build');
     const streakText = streakDays > 0 ? `${streakDays} day streak` : 'Start your streak';
     const sessionText = totalSessions === 1 ? '1 session total' : `${totalSessions} sessions total`;
 
@@ -24,7 +25,7 @@ Page({
       safeAreaEnabled: true,
       centerContent: false,
       edgeMargin: 8,
-      verticalAlignment: 'center',
+      verticalAlignment: 'start',
       children: [
         new VStack({
           spacing: 12,
