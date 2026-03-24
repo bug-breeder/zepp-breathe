@@ -26,7 +26,7 @@ import hmUI from '@zos/ui';
 - Create: `hmUI.createWidget(hmUI.widget.TEXT, { x, y, w, h, text, text_size, color, align_h })`
 - Update: `widget.setProperty(hmUI.prop.TEXT, value)` — **always null-check widget first**
 - Show/hide: `widget.setProperty(hmUI.prop.VISIBLE, true/false)`
-- Touch: `.addEventListener(hmUI.event.CLICK_UP, callback)` on any widget
+- Touch: Use `hmUI.widget.BUTTON` with `click_func` for reliable tap handling. `FILL_RECT.addEventListener(hmUI.event.CLICK_UP, fn)` silently fails on real devices.
 - `align_h`: `hmUI.align.CENTER_H` | `hmUI.align.LEFT` | `hmUI.align.RIGHT`
 - Colors: **hex numbers** (`0xffffff`), not strings
 - `ARC`: `start_angle`/`end_angle` in degrees; −90 = top, 90 = bottom, 0 = right
@@ -161,160 +161,16 @@ stop({ file: 'app-service/index' });
 
 ---
 
-## ZUI Component Reference (`zeppos-zui`)
-
-Import components from `'zeppos-zui'`:
-
-```js
-import {
-  CircularLayout,
-  VStack,
-  HStack,
-  ScrollView,
-  Container,
-  Text,
-  Title,
-  Body,
-  Caption,
-  Button,
-  PrimaryButton,
-  SecondaryButton,
-  DestructiveButton,
-  Switch,
-  Stepper,
-  ListItem,
-  SectionHeader,
-  TitleBar,
-  showToast,
-  dismissToast,
-  showLoading,
-  hideLoading,
-  createState,
-  effect,
-  textColors,
-  systemColors,
-  backgroundColors,
-  fontSizes,
-  theme,
-} from 'zeppos-zui';
-```
-
-### Layout
-
-```js
-// Root container for circular displays
-new CircularLayout({
-  safeAreaEnabled: true,   // 2px margin from edges
-  centerContent: false,
-  edgeMargin: 8,
-  verticalAlignment: 'center' | 'start' | 'end',
-  children: [...],
-});
-
-// Vertical stack
-new VStack({ spacing: 16, alignment: 'center', children: [...] });
-
-// Horizontal stack
-new HStack({ spacing: 8, justifyContent: 'space-between', alignment: 'center', children: [...] });
-
-// Scrollable container
-new ScrollView({ direction: 'vertical', showScrollBar: true, children: [...] });
-```
-
-After building the tree: `layout.mount()` in `build()`, `layout.destroy()` in `onDestroy()`.
-To force a re-render: `layout.update()`.
-
-### Text
-
-```js
-new Text({
-  text: 'Hello',
-  textStyle: 'largeTitle' | 'title' | 'subheadline' | 'body' | 'caption1' | 'caption2',
-  fontWeight: 'bold' | 'medium' | 'regular',
-  color: textColors.title, // or hex number e.g. 0xffffff
-  align: 'center' | 'left' | 'right',
-});
-```
-
-Color tokens: `textColors.title`, `.subtitle`, `.body`, `.caption` (from `'zeppos-zui'`).
-
-### Button
-
-```js
-new Button({
-  label: 'Confirm',
-  variant: 'primary' | 'secondary' | 'destructive' | 'ghost',
-  size: 'small' | 'medium' | 'large' | 'capsule' | 'floating',
-  onPress: () => {
-    /* handler */
-  },
-  onLongPress: () => {
-    /* optional */
-  },
-  disabled: false,
-});
-```
-
-### Switch
-
-```js
-new Switch({
-  value: true,
-  showLabels: true,
-  onChange: (val) => {
-    console.log('switched:', val);
-  },
-});
-```
-
-### ListItem
-
-```js
-new ListItem({
-  title: 'Settings',
-  subtitle: 'Configure app options', // optional
-  accessory: 'chevron' | 'switch' | 'badge', // optional
-  onPress: () => {},
-});
-```
-
-### Feedback
-
-```js
-showToast({ message: 'Saved!', icon: 'ic_check', duration: 2000 });
-dismissToast();
-
-showLoading({ message: 'Please wait...' });
-hideLoading();
-```
-
-### State
-
-```js
-const state = createState({ count: 0 });
-effect(
-  state,
-  (s) => s.count,
-  (count) => {
-    /* runs on change */
-  }
-);
-state.set({ count: state.get().count + 1 });
-```
-
----
-
 ## Page Scaffold (copy this pattern)
 
 ```js
-import { CircularLayout, VStack, Text, textColors } from 'zeppos-zui';
+import hmUI from '@zos/ui';
+import { COLOR, TYPOGRAPHY } from '../../utils/constants';
 // import { push, pop } from '@zos/router'; // uncomment when you need navigation
-
-let pageRoot = null; // module-level — reset in onInit
 
 Page({
   onInit(params) {
-    pageRoot = null; // reset on every visit
+    // Reset any module-level state here (vars persist across page visits)
     try {
       const p = params ? JSON.parse(params) : {};
       console.log('[PageName] params:', p);
@@ -324,23 +180,24 @@ Page({
   },
 
   build() {
-    pageRoot = new CircularLayout({
-      safeAreaEnabled: true,
-      children: [
-        new VStack({
-          spacing: 16,
-          children: [new Text({ text: 'Page Title', textStyle: 'title', color: textColors.title })],
-        }),
-      ],
+    // Black OLED background
+    hmUI.createWidget(hmUI.widget.FILL_RECT, { x: 0, y: 0, w: 480, h: 480, color: COLOR.BG });
+
+    // Title — centered on 480×480 canvas
+    hmUI.createWidget(hmUI.widget.TEXT, {
+      x: 60,
+      y: 200,
+      w: 360,
+      h: 48,
+      text: 'Page Title',
+      text_size: TYPOGRAPHY.title,
+      color: COLOR.TEXT,
+      align_h: hmUI.align.CENTER_H,
     });
-    pageRoot.mount();
   },
 
   onDestroy() {
-    if (pageRoot) {
-      pageRoot.destroy();
-      pageRoot = null;
-    }
+    // hmUI widgets destroyed automatically
     // offGesture(); offKey(); vibrator.stop(); — if used
   },
 });
@@ -361,3 +218,5 @@ Page({
 9. **Vibrator must stop** — call `vibrator.stop()` in `onDestroy`.
 10. **Images in `assets/raw/`** — widget `src` paths are relative to this directory.
 11. **Icon path for common target** — Zeus resolves `targets.common` + round platforms to `common.r`. Icon must be at `assets/common.r/icon.png`.
+12. **ZUI layout containers are broken** — `zeppos-zui` `VStack`/`CircularLayout` places all children at `y=0` because it reads child sizes before children are laid out. Use raw `hmUI` with explicit `{ x, y, w, h }` instead.
+13. **`FILL_RECT` touch is unreliable** — `FILL_RECT.addEventListener(hmUI.event.CLICK_UP, fn)` silently fails on device. Always use `hmUI.widget.BUTTON` with `click_func` for tap targets.
