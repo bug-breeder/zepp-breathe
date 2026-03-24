@@ -22,14 +22,15 @@ The template's "golden example" (`pages/home/index.js`) previously used `Circula
 
 ## Files Changed
 
-| File | Change |
-|------|--------|
-| `pages/home/index.js` | **Already done** — rewritten to raw hmUI |
-| `CLAUDE.md` | **Already done** — ZUI warning + 2 new gotchas; minor leftover fix needed in slash commands table |
-| `package.json` | Remove `zeppos-zui` from `dependencies` (was the only production dep) |
-| `.claude/commands/zeppos.md` | Remove ZUI section; fix touch bullet; replace page scaffold; add 2 gotchas |
-| `.claude/commands/new-page.md` | Replace ZUI scaffold with raw hmUI scaffold |
-| `global.d.ts` | No change — already ZUI-free |
+| File                           | Change                                                                                            |
+| ------------------------------ | ------------------------------------------------------------------------------------------------- |
+| `pages/home/index.js`          | **Already done** — rewritten to raw hmUI                                                          |
+| `CLAUDE.md`                    | **Already done** — ZUI warning + 2 new gotchas; minor leftover fix needed in slash commands table |
+| `package.json`                 | Remove `zeppos-zui` from `dependencies` (was the only production dep)                             |
+| `utils/constants.js`           | Remove stale ZUI reference in JSDoc comment                                                       |
+| `.claude/commands/zeppos.md`   | Remove ZUI section; fix touch bullet; replace page scaffold; add 2 gotchas                        |
+| `.claude/commands/new-page.md` | Replace ZUI scaffold with raw hmUI scaffold; fix Step 4 to use `npm run verify`                   |
+| `global.d.ts`                  | No change — already ZUI-free                                                                      |
 
 ---
 
@@ -61,19 +62,23 @@ Fix the slash commands table — still references "ZUI component reference" from
 ### 3. `.claude/commands/zeppos.md`
 
 **3a. Remove the "ZUI Component Reference" section** — the entire block from:
+
 ```
 ## ZUI Component Reference (`zeppos-zui`)
 ```
+
 through the end of the `State` subsection. This is ~80 lines covering `CircularLayout`, `VStack`, `HStack`, `ScrollView`, `Text`, `Button`, `Switch`, `ListItem`, `showToast`, `createState`, etc.
 
 **3b. Fix the touch bullet under `@zos/ui`**
 
 Before:
+
 ```
 - Touch: `.addEventListener(hmUI.event.CLICK_UP, callback)` on any widget
 ```
 
 After:
+
 ```
 - Touch: Use `hmUI.widget.BUTTON` with `click_func` for reliable tap handling.
   `FILL_RECT.addEventListener(hmUI.event.CLICK_UP, fn)` silently fails on real devices.
@@ -82,6 +87,7 @@ After:
 **3c. Replace the "Page Scaffold" section**
 
 Before (ZUI-based):
+
 ```js
 import { CircularLayout, VStack, Text, textColors } from 'zeppos-zui';
 let pageRoot = null;
@@ -100,6 +106,7 @@ Page({
 ```
 
 After (raw hmUI):
+
 ```js
 import hmUI from '@zos/ui';
 import { COLOR, TYPOGRAPHY } from '../../utils/constants';
@@ -122,7 +129,10 @@ Page({
 
     // Title — centered on 480×480 canvas
     hmUI.createWidget(hmUI.widget.TEXT, {
-      x: 60, y: 200, w: 360, h: 48,
+      x: 60,
+      y: 200,
+      w: 360,
+      h: 48,
       text: 'Page Title',
       text_size: TYPOGRAPHY.title,
       color: COLOR.TEXT,
@@ -148,9 +158,22 @@ Page({
     silently fails on device. Always use `hmUI.widget.BUTTON` with `click_func` for tap targets.
 ```
 
+### 3e. `utils/constants.js`
+
+Remove the ZUI cross-reference in the JSDoc block at the top of the file:
+
+```js
+// Remove this line:
+// For ZUI-based pages, prefer ZUI theme tokens (textColors, systemColors) imported from 'zeppos-zui'.
+```
+
+Everything else in the file is correct and stays unchanged.
+
+---
+
 ### 4. `.claude/commands/new-page.md`
 
-Replace the page scaffold in **Step 2** with raw hmUI. The import and `build()` body change; the `onInit` / `onDestroy` shell stays the same:
+Replace the page scaffold in **Step 2** with raw hmUI. The three lifecycle methods (`onInit`, `build`, `onDestroy`) remain, but `onInit` no longer resets a `pageRoot` variable — the new scaffold has no module-level vars (hmUI widgets are destroyed automatically). Also fix **Step 4** to run `npm run verify` (lint + format + zeus build) instead of just `npm run lint`.
 
 ```js
 /**
@@ -204,7 +227,7 @@ Page({
 
 ## What Does NOT Change
 
-- `utils/constants.js` — correct and ZUI-free
+- `utils/constants.js` — ZUI comment removed; everything else unchanged
 - `utils/storage.js` — correct and ZUI-free
 - `app.json` — correct
 - `app.js` — correct
@@ -217,6 +240,7 @@ Page({
 ## Verification
 
 After implementation:
+
 - `npm install` in a fresh clone should NOT install `zeppos-zui`
 - `npm run verify` passes (lint + format + zeus build)
 - Running `/new-page Test` scaffolds a raw hmUI page with no ZUI imports

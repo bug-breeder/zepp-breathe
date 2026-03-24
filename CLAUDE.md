@@ -111,8 +111,8 @@ assets/
 
 ## Slash Commands
 
-| Command                | When to use                                          |
-| ---------------------- | ---------------------------------------------------- |
-| `/zeppos [question]`   | Full ZeppOS API cheatsheet + ZUI component reference |
-| `/new-page <PageName>` | Scaffold a new page and register it in `app.json`    |
-| `/review [PR#]`        | ZeppOS-aware automated PR review                     |
+| Command                | When to use                                       |
+| ---------------------- | ------------------------------------------------- |
+| `/zeppos [question]`   | Full ZeppOS API cheatsheet                        |
+| `/new-page <PageName>` | Scaffold a new page and register it in `app.json` |
+| `/review [PR#]`        | ZeppOS-aware automated PR review                  |

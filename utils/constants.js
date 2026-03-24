@@ -7,8 +7,6 @@
  * and read getDeviceInfo().width / .height — many round devices are 466×466.
  *
  * These constants are for raw @zos/ui (hmUI) layout.
- * For ZUI-based pages, prefer ZUI theme tokens (textColors, systemColors)
- * imported from 'zeppos-zui'.
  */
 
 export const DEVICE_WIDTH = 480;

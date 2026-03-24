@@ -26,6 +26,7 @@ npm install
 All task steps below assume the working directory is `~/Code/Others/zeppos-app-template`.
 
 > **Auth note:** If `git push` fails with 403, run:
+>
 > ```bash
 > unset GITHUB_TOKEN
 > gh auth switch --user bug-breeder
@@ -36,6 +37,7 @@ All task steps below assume the working directory is `~/Code/Others/zeppos-app-t
 ## Task 1: Remove `zeppos-zui` from `package.json`
 
 **Files:**
+
 - Modify: `package.json`
 
 - [ ] **Step 1: Confirm the dependency exists**
@@ -51,6 +53,7 @@ Expected: `"zeppos-zui": "^1.0.0"` in the `dependencies` block.
 Edit `package.json` — delete the entire `"dependencies"` key and its value. It was the only production dependency, so the block disappears entirely.
 
 Before (at the end of the file):
+
 ```json
   "dependencies": {
     "zeppos-zui": "^1.0.0"
@@ -59,6 +62,7 @@ Before (at the end of the file):
 ```
 
 After:
+
 ```json
 }
 ```
@@ -99,6 +103,7 @@ git commit -m "chore: remove zeppos-zui dependency"
 ## Task 2: Remove stale ZUI references in `utils/constants.js` and `CLAUDE.md`
 
 **Files:**
+
 - Modify: `utils/constants.js`
 - Modify: `CLAUDE.md`
 
@@ -173,6 +178,7 @@ git commit -m "chore: remove stale ZUI references from constants and CLAUDE.md"
 Four changes to one file: remove ZUI section, fix touch bullet, replace page scaffold, add 2 gotchas.
 
 **Files:**
+
 - Modify: `.claude/commands/zeppos.md`
 
 - [ ] **Step 1: Confirm ZUI section exists**
@@ -190,6 +196,7 @@ grep -n "## ZUI Component Reference\|## Page Scaffold\|state\.set" .claude/comma
 ```
 
 Expected output (line numbers will vary):
+
 - `## ZUI Component Reference (\`zeppos-zui\`)` — start of block to delete
 - `state.set(...)` line — last meaningful line of the State subsection, near the end of the ZUI block
 - `## Page Scaffold` — the line that should follow immediately after deletion
@@ -199,10 +206,13 @@ Note the line numbers for the ZUI section start and the `## Page Scaffold` line 
 - [ ] **Step 3: Remove the entire "ZUI Component Reference" section**
 
 Delete everything from:
+
 ```
 ## ZUI Component Reference (`zeppos-zui`)
 ```
+
 up to (but not including) the line:
+
 ```
 ## Page Scaffold (copy this pattern)
 ```
@@ -222,11 +232,13 @@ Expected: zero matches. If any remain, the deletion was incomplete.
 - [ ] **Step 5: Fix the touch bullet under `### UI — @zos/ui`**
 
 Find:
+
 ```
 - Touch: `.addEventListener(hmUI.event.CLICK_UP, callback)` on any widget
 ```
 
 Replace with:
+
 ```
 - Touch: Use `hmUI.widget.BUTTON` with `click_func` for reliable tap handling. `FILL_RECT.addEventListener(hmUI.event.CLICK_UP, fn)` silently fails on real devices.
 ```
@@ -316,6 +328,7 @@ git commit -m "chore: remove ZUI section from /zeppos command; update page scaff
 ## Task 4: Replace ZUI scaffold in `.claude/commands/new-page.md`
 
 **Files:**
+
 - Modify: `.claude/commands/new-page.md`
 
 - [ ] **Step 1: Confirm current scaffold uses ZUI**
@@ -383,11 +396,13 @@ Page({
 - [ ] **Step 3: Fix Step 4 — change `npm run lint` to `npm run verify`**
 
 Find in `## Step 4: Verify`:
+
 ```
 Run `npm run lint` — expect 0 errors.
 ```
 
 Replace with:
+
 ```
 Run `npm run verify` — expect 0 errors (lint + format + zeus build).
 ```
