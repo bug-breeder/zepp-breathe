@@ -2,6 +2,7 @@
 import hmUI from '@zos/ui';
 import { push } from '@zos/router';
 import { get, getKey } from '../../utils/storage';
+import { COLOR } from '../../utils/constants';
 import {
   TECHNIQUE_NAMES,
   TECHNIQUE_KEYS,
@@ -136,7 +137,7 @@ Page({
       h: 44,
       radius: 22,
       normal_color: 0x007aff,
-      press_color: 0x0051d5,
+      press_color: COLOR.SECONDARY_PRESSED,
       text: 'Start',
       text_size: 22,
       color: 0xffffff,

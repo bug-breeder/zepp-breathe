@@ -21,11 +21,13 @@ export const COLOR = {
   BG: 0x000000, // OLED black — always use as page background
   PRIMARY: 0x30d158, // Green — main actions, progress indicators
   SECONDARY: 0x0a84ff, // Blue — secondary actions, links
+  SECONDARY_PRESSED: 0x0051d5, // pressed state for SECONDARY button
   DANGER: 0xfa5151, // Red — destructive actions, errors
   SUCCESS: 0x34c759, // Lighter green — success/confirmation states
   TEXT: 0xffffff, // White — primary text
   TEXT_MUTED: 0x8e8e93, // Gray — hints, captions, inactive elements
   CARD: 0x1c1c1e, // Dark gray — card and surface backgrounds
+  CARD_PRESSED: 0x2c2c2e, // pressed state for CARD background
 };
 
 /**

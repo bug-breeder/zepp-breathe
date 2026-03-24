@@ -2,9 +2,9 @@
 import hmUI from '@zos/ui';
 import { push } from '@zos/router';
 import { get, getKey } from '../../utils/storage';
+import { COLOR, DEVICE_WIDTH } from '../../utils/constants';
 
 // 480×480 canvas. Content vertically centered ~155–354.
-const W = 480;
 
 // Module-level state — reset in onInit
 let streakDays = 0;
@@ -25,7 +25,7 @@ Page({
     hmUI.createWidget(hmUI.widget.TEXT, {
       x: 0,
       y: 155,
-      w: W,
+      w: DEVICE_WIDTH,
       h: 56,
       text: 'Breathe',
       text_size: 40,
@@ -65,7 +65,7 @@ Page({
       h: 52,
       radius: 26,
       normal_color: 0x007aff,
-      press_color: 0x0051d5,
+      press_color: COLOR.SECONDARY_PRESSED,
       text: 'Start',
       text_size: 22,
       color: 0xffffff,
@@ -82,7 +82,7 @@ Page({
       h: 40,
       radius: 20,
       normal_color: 0x1c1c1e,
-      press_color: 0x2c2c2e,
+      press_color: COLOR.CARD_PRESSED,
       text: 'Stats',
       text_size: 20,
       color: 0x8e8e93,

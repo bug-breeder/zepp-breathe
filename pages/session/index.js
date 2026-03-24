@@ -4,7 +4,7 @@ import { replace, pop } from '@zos/router';
 import { Vibrator } from '@zos/sensor';
 import { onGesture, offGesture, GESTURE_DOWN } from '@zos/interaction';
 import { TECHNIQUES } from '../../utils/techniques';
-import { COLOR, TYPOGRAPHY } from '../../utils/constants';
+import { COLOR, DEVICE_WIDTH, TYPOGRAPHY } from '../../utils/constants';
 import { get, set, getKey } from '../../utils/storage';
 import { getDateString, getYesterdayString, getDateNDaysAgo } from '../../utils/date';
 
@@ -249,7 +249,7 @@ Page({
     hmUI.createWidget(hmUI.widget.FILL_RECT, {
       x: 0,
       y: 0,
-      w: 480,
+      w: DEVICE_WIDTH,
       h: 480,
       color: COLOR.BG,
     });
@@ -285,7 +285,7 @@ Page({
     phaseTextWidget = hmUI.createWidget(hmUI.widget.TEXT, {
       x: 0,
       y: 190,
-      w: 480,
+      w: DEVICE_WIDTH,
       h: 32,
       text: '',
       text_size: TYPOGRAPHY.caption,
@@ -297,7 +297,7 @@ Page({
     countdownTextWidget = hmUI.createWidget(hmUI.widget.TEXT, {
       x: 0,
       y: 218,
-      w: 480,
+      w: DEVICE_WIDTH,
       h: 70,
       text: '',
       text_size: TYPOGRAPHY.largeTitle,
@@ -309,7 +309,7 @@ Page({
     roundCounterWidget = hmUI.createWidget(hmUI.widget.TEXT, {
       x: 0,
       y: 295,
-      w: 480,
+      w: DEVICE_WIDTH,
       h: 32,
       text: '',
       text_size: TYPOGRAPHY.caption,
@@ -321,7 +321,7 @@ Page({
     completionCheckWidget = hmUI.createWidget(hmUI.widget.TEXT, {
       x: 0,
       y: 160,
-      w: 480,
+      w: DEVICE_WIDTH,
       h: 80,
       text: '✓',
       text_size: TYPOGRAPHY.title,
@@ -332,7 +332,7 @@ Page({
     completionStreakWidget = hmUI.createWidget(hmUI.widget.TEXT, {
       x: 0,
       y: 255,
-      w: 480,
+      w: DEVICE_WIDTH,
       h: 50,
       text: '',
       text_size: TYPOGRAPHY.title,
