@@ -1,6 +1,6 @@
 // pages/stats/index.js
 import hmUI from '@zos/ui';
-import { COLOR } from '../../utils/constants';
+import { UI, COLOR } from '@bug-breeder/zeroui';
 import { get, getKey } from '../../utils/storage';
 import { getDateString, getDateNDaysAgo, getTodayDOW } from '../../utils/date';
 
@@ -59,14 +59,14 @@ function buildHeatmap() {
 
       let color;
       if (isFuture) {
-        color = COLOR.CARD; // same as missed — avoids confusing empty slots
+        color = COLOR.SURFACE; // same as missed — avoids confusing empty slots
       } else {
         const dateStr = isToday ? todayStr : getDateNDaysAgo(daysAgo);
         const practiced = sessionHistory[dateStr] !== undefined && sessionHistory[dateStr] > 0;
         if (isToday) {
           color = practiced ? 0x52d985 : 0x2c2c2e; // lighter green or subtle dim highlight
         } else {
-          color = practiced ? COLOR.PRIMARY : COLOR.CARD;
+          color = practiced ? COLOR.PRIMARY : COLOR.SURFACE;
         }
       }
 
@@ -94,17 +94,8 @@ Page({
   },
 
   build() {
-    // Title
-    hmUI.createWidget(hmUI.widget.TEXT, {
-      x: 60,
-      y: 60,
-      w: 360,
-      h: 36,
-      text: 'Your Journey',
-      text_size: 28,
-      color: COLOR.TEXT_MUTED,
-      align_h: hmUI.align.CENTER_H,
-    });
+    UI.bg();
+    UI.title('Your Journey');
 
     // Heatmap (DOW labels + grid)
     buildHeatmap();
@@ -117,7 +108,7 @@ Page({
       h: 52,
       text: String(streakDays),
       text_size: 44,
-      color: streakDays > 0 ? 0xff9f0a : 0x636366,
+      color: streakDays > 0 ? COLOR.WARNING : 0x636366,
       align_h: hmUI.align.CENTER_H,
     });
 
