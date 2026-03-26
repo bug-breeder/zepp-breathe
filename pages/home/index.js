@@ -25,11 +25,11 @@ Page({
     // "Breathe" title
     hmUI.createWidget(hmUI.widget.TEXT, {
       x: 0,
-      y: 155,
+      y: 128,
       w: 480,
-      h: 56,
+      h: 64,
       text: 'Breathe',
-      text_size: 40,
+      text_size: 50,
       color: COLOR.TEXT,
       align_h: hmUI.align.CENTER_H,
     });
@@ -37,11 +37,11 @@ Page({
     // Streak line
     hmUI.createWidget(hmUI.widget.TEXT, {
       x: 60,
-      y: 222,
+      y: 204,
       w: 360,
-      h: 34,
+      h: 40,
       text: streakText,
-      text_size: 26,
+      text_size: 32,
       color: streakDays > 0 ? COLOR.WARNING : COLOR.TEXT_MUTED,
       align_h: hmUI.align.CENTER_H,
     });
@@ -49,11 +49,11 @@ Page({
     // Sessions line
     hmUI.createWidget(hmUI.widget.TEXT, {
       x: 60,
-      y: 260,
+      y: 248,
       w: 360,
-      h: 28,
+      h: 34,
       text: sessionText,
-      text_size: 22,
+      text_size: 26,
       color: 0x636366,
       align_h: hmUI.align.CENTER_H,
     });
@@ -61,14 +61,14 @@ Page({
     // "Start" button
     hmUI.createWidget(hmUI.widget.BUTTON, {
       x: 140,
-      y: 302,
+      y: 290,
       w: 200,
-      h: 52,
-      radius: 26,
+      h: 56,
+      radius: 28,
       normal_color: COLOR.SECONDARY,
       press_color: COLOR.SECONDARY_PRESSED,
       text: 'Start',
-      text_size: 22,
+      text_size: 28,
       color: COLOR.TEXT,
       click_func: () => {
         push({ url: 'pages/setup/index' });
@@ -78,14 +78,14 @@ Page({
     // "Stats" button
     hmUI.createWidget(hmUI.widget.BUTTON, {
       x: 165,
-      y: 362,
+      y: 354,
       w: 150,
-      h: 40,
-      radius: 20,
+      h: 44,
+      radius: 22,
       normal_color: COLOR.SURFACE,
       press_color: COLOR.SURFACE_PRESSED,
       text: 'Stats',
-      text_size: 20,
+      text_size: 24,
       color: COLOR.TEXT_MUTED,
       click_func: () => {
         push({ url: 'pages/stats/index' });

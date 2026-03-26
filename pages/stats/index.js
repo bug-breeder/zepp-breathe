@@ -37,11 +37,11 @@ function buildHeatmap() {
   DOW_LABELS.forEach((label, col) => {
     hmUI.createWidget(hmUI.widget.TEXT, {
       x: GRID_LEFT_X + col * CELL_STEP,
-      y: 108,
+      y: 106,
       w: CELL_SIZE,
-      h: 22,
+      h: 24,
       text: label,
-      text_size: 16,
+      text_size: 22,
       color: COLOR.TEXT_MUTED,
       align_h: hmUI.align.CENTER_H,
     });
@@ -103,11 +103,11 @@ Page({
     // Streak number — large, orange when active, gray when zero
     hmUI.createWidget(hmUI.widget.TEXT, {
       x: 60,
-      y: 278,
+      y: 272,
       w: 360,
-      h: 52,
+      h: 60,
       text: String(streakDays),
-      text_size: 44,
+      text_size: 52,
       color: streakDays > 0 ? COLOR.WARNING : 0x636366,
       align_h: hmUI.align.CENTER_H,
     });
@@ -115,11 +115,11 @@ Page({
     // Streak label
     hmUI.createWidget(hmUI.widget.TEXT, {
       x: 60,
-      y: 334,
+      y: 336,
       w: 360,
-      h: 26,
+      h: 30,
       text: streakDays === 1 ? 'day streak' : 'days streak',
-      text_size: 20,
+      text_size: 24,
       color: COLOR.TEXT_MUTED,
       align_h: hmUI.align.CENTER_H,
     });
@@ -127,11 +127,11 @@ Page({
     // Motivational message
     hmUI.createWidget(hmUI.widget.TEXT, {
       x: 60,
-      y: 365,
+      y: 370,
       w: 360,
-      h: 26,
+      h: 30,
       text: getMotivationalMessage(streakDays, totalSessions),
-      text_size: 20,
+      text_size: 24,
       color: COLOR.TEXT_MUTED,
       align_h: hmUI.align.CENTER_H,
     });
@@ -140,11 +140,11 @@ Page({
     const sessText = totalSessions === 1 ? '1 session total' : `${totalSessions} sessions total`;
     hmUI.createWidget(hmUI.widget.TEXT, {
       x: 60,
-      y: 396,
+      y: 404,
       w: 360,
-      h: 24,
+      h: 28,
       text: sessText,
-      text_size: 18,
+      text_size: 22,
       color: 0x636366,
       align_h: hmUI.align.CENTER_H,
     });
