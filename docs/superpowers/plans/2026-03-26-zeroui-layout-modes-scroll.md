@@ -29,9 +29,11 @@
 ## Task 1 — Update zone coordinates and add LAYOUT modes (ZeRoUI)
 
 **Files:**
+
 - Modify: `/Users/alanguyen/Code/Others/ZeRoUI/src/zones.js` (entire file)
 
 ### Context
+
 Current ZONE has MAIN (y=84, h=300, bottom=384) overlapping ACTION (y=376) by 8px. TITLE is at y=40. This task moves ACTION down to y=392 (bottom=440, 40px clearance), TITLE up to y=24, and adds the `LAYOUT` export with four named layout modes.
 
 **ZONE legacy export**: coordinates ARE updated to match the new values (same as `LAYOUT.FULL`). The spec's "backwards compatibility" means keeping the export name, not freezing old values. Any page using `ZONE.TITLE` (e.g. stats page via `UI.title()`) will have its title shift from y=40 to y=24 — this is intentional and desirable.
@@ -54,34 +56,34 @@ Current ZONE has MAIN (y=84, h=300, bottom=384) overlapping ACTION (y=376) by 8p
  */
 
 export const ZONE = {
-  TITLE:  { x: 120, y: 24,  w: 240, h: 44  },
-  MAIN:   { x: 80,  y: 74,  w: 320, h: 312 },
-  ACTION: { x: 140, y: 392, w: 200, h: 48  },
+  TITLE: { x: 120, y: 24, w: 240, h: 44 },
+  MAIN: { x: 80, y: 74, w: 320, h: 312 },
+  ACTION: { x: 140, y: 392, w: 200, h: 48 },
 };
 
 export const LAYOUT = {
   // title bar + scrollable main + action button (default for most pages)
   FULL: {
-    TITLE:  { x: 120, y: 24,  w: 240, h: 44  },
-    MAIN:   { x: 80,  y: 74,  w: 320, h: 312 },
-    ACTION: { x: 140, y: 392, w: 200, h: 48  },
+    TITLE: { x: 120, y: 24, w: 240, h: 44 },
+    MAIN: { x: 80, y: 74, w: 320, h: 312 },
+    ACTION: { x: 140, y: 392, w: 200, h: 48 },
   },
 
   // no title — MAIN starts at y=62 (min safe top for x=80 content)
   NO_TITLE: {
-    MAIN:   { x: 80,  y: 62,  w: 320, h: 324 },
-    ACTION: { x: 140, y: 392, w: 200, h: 48  },
+    MAIN: { x: 80, y: 62, w: 320, h: 324 },
+    ACTION: { x: 140, y: 392, w: 200, h: 48 },
   },
 
   // no action button — MAIN extends to y=416 (max safe bottom for x=80)
   NO_ACTION: {
-    TITLE:  { x: 120, y: 24,  w: 240, h: 44  },
-    MAIN:   { x: 80,  y: 74,  w: 320, h: 342 },
+    TITLE: { x: 120, y: 24, w: 240, h: 44 },
+    MAIN: { x: 80, y: 74, w: 320, h: 342 },
   },
 
   // full safe inscribed rect — no chrome (session, immersive pages)
   MAIN_ONLY: {
-    MAIN:   { x: 80,  y: 62,  w: 320, h: 354 },
+    MAIN: { x: 80, y: 62, w: 320, h: 354 },
   },
 };
 ```
@@ -116,10 +118,13 @@ Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>"
 ## Task 2 — Add scrollable Column support (ZeRoUI)
 
 **Files:**
+
 - Modify: `/Users/alanguyen/Code/Others/ZeRoUI/src/column.js` (entire file)
 
 ### Context
+
 Current Column only supports non-scrollable mode. This task adds:
+
 - `{ scrollable: true }` constructor option — creates a VIEW_CONTAINER viewport
 - `clearContent()` — destroys child widgets only, keeps VIEW_CONTAINER alive (critical for z-order on rebuild)
 - `destroyAll()` — full teardown including VIEW_CONTAINER (used in `onDestroy` only)
@@ -322,25 +327,31 @@ Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>"
 ## Task 3 — Add renderPage() to components.js (ZeRoUI)
 
 **Files:**
+
 - Modify: `/Users/alanguyen/Code/Others/ZeRoUI/src/components.js` (add function at end)
 
 ### Context
+
 `renderPage()` solves the z-ordering problem for scrollable Column pages. It must call `buildFn()` BEFORE creating masks/title/action — this ensures the Column's VIEW_CONTAINER is at a lower z-index than the chrome widgets. Two FILL_RECT masks (top + bottom) cover any content that scrolls outside the MAIN zone, using OLED black (zero power cost).
 
 - [ ] **Step 1: Update the `column()` factory wrapper to forward options**
 
 Find this function in `components.js` (currently line 38):
+
 ```js
 export function column(zone = ZONE.MAIN) {
   return new Column(zone);
 }
 ```
+
 Replace with:
+
 ```js
 export function column(zone = ZONE.MAIN, opts = {}) {
   return new Column(zone, opts);
 }
 ```
+
 Without this change, `UI.column(LAYOUT.FULL.MAIN, { scrollable: true })` silently drops `{ scrollable: true }` and no VIEW_CONTAINER is ever created.
 
 - [ ] **Step 2: Append renderPage() to the end of components.js**
@@ -354,7 +365,11 @@ Add this after the final `}` of `statCard`:
 export function renderPage({ layout, buildFn, title, action }) {
   // 1. Black background
   hmUI.createWidget(hmUI.widget.FILL_RECT, {
-    x: 0, y: 0, w: 480, h: 480, color: COLOR.BG,
+    x: 0,
+    y: 0,
+    w: 480,
+    h: 480,
+    color: COLOR.BG,
   });
 
   // 2. Column content — created first = lowest z-order
@@ -363,7 +378,11 @@ export function renderPage({ layout, buildFn, title, action }) {
   // 3. Top mask — hides content that scrolls above MAIN into TITLE zone
   if (layout.TITLE && layout.MAIN) {
     hmUI.createWidget(hmUI.widget.FILL_RECT, {
-      x: 0, y: 0, w: 480, h: layout.MAIN.y, color: COLOR.BG,
+      x: 0,
+      y: 0,
+      w: 480,
+      h: layout.MAIN.y,
+      color: COLOR.BG,
     });
   }
 
@@ -387,7 +406,11 @@ export function renderPage({ layout, buildFn, title, action }) {
   if (layout.MAIN) {
     const mainBottom = layout.MAIN.y + layout.MAIN.h;
     hmUI.createWidget(hmUI.widget.FILL_RECT, {
-      x: 0, y: mainBottom, w: 480, h: 480 - mainBottom, color: COLOR.BG,
+      x: 0,
+      y: mainBottom,
+      w: 480,
+      h: 480 - mainBottom,
+      color: COLOR.BG,
     });
   }
 
@@ -440,9 +463,11 @@ Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>"
 ## Task 4 — Export LAYOUT and renderPage from ZeRoUI index.js
 
 **Files:**
+
 - Modify: `/Users/alanguyen/Code/Others/ZeRoUI/index.js`
 
 ### Context
+
 `index.js` currently imports from zones.js and components.js but doesn't re-export `LAYOUT` or `renderPage`. This task adds those exports. The `UI` namespace object and all existing named exports are untouched.
 
 - [ ] **Step 1: Add LAYOUT to imports and exports**
@@ -451,6 +476,7 @@ Current import line 6: `import { ZONE } from './src/zones.js';`
 Change to: `import { ZONE, LAYOUT } from './src/zones.js';`
 
 Current import lines 8–15 from components.js — add `renderPage`:
+
 ```js
 import {
   bg,
@@ -464,6 +490,7 @@ import {
 ```
 
 Add `LAYOUT` to the `UI` namespace object (after line `ZONE,`):
+
 ```js
 export const UI = {
   bg,
@@ -482,6 +509,7 @@ export const UI = {
 ```
 
 Add to the named exports block (after `statCard,`):
+
 ```js
   LAYOUT,
   renderPage,
@@ -567,10 +595,13 @@ Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>"
 ## Task 5 — Migrate setup page to renderPage() + scrollable Column (zepp-meditation)
 
 **Files:**
+
 - Modify: `/Users/alanguyen/Code/Others/zepp-meditation/pages/setup/index.js` (entire file)
 
 ### Context
+
 Current setup page:
+
 - Imports `{ UI, SPACING }` — needs to add `{ LAYOUT, renderPage }`
 - `rebuild()` calls `col.destroyAll()` then creates a new Column each time — must change to `col.clearContent()` on subsequent calls, only create Column once
 - `build()` calls `UI.bg()` → `UI.title()` → `rebuild()` → `UI.actionButton()` — wrong z-order for scroll; replace with `renderPage()`
@@ -684,6 +715,7 @@ If lint errors about unused import appear: check that both `LAYOUT, SPACING, ren
 - [ ] **Step 3: Manual simulator check**
 
 Run `npm run dev` and verify in the simulator:
+
 - Setup page loads: title "Breathing Setup" appears at top of circle
 - Three technique chips and rounds row visible without overlap with Start button
 - Tapping a technique chip: selection changes, title stays on top, Start button stays on top

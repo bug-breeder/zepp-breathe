@@ -21,11 +21,11 @@ Redesign ZeRoUI's zone system to fix the MAIN/ACTION overlap bug, add four named
 
 All in 480×480 design canvas units.
 
-| Zone | x | y | w | h | Notes |
-|------|---|---|---|---|-------|
-| TITLE | 120 | **24** | 240 | 44 | Moved up from y=40. TITLE rect corners at (120,24) are 247px from center — 7px outside the circle — but text is center-aligned and far narrower than 240px, so visible content stays safely inside. |
-| MAIN (FULL) | 80 | **74** | 320 | **312** | Starts 6px below TITLE bottom (y=68); ends y=386 |
-| ACTION | 140 | **392** | 200 | 48 | Bottom y=440; 40px clearance from circle edge |
+| Zone        | x   | y       | w   | h       | Notes                                                                                                                                                                                               |
+| ----------- | --- | ------- | --- | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| TITLE       | 120 | **24**  | 240 | 44      | Moved up from y=40. TITLE rect corners at (120,24) are 247px from center — 7px outside the circle — but text is center-aligned and far narrower than 240px, so visible content stays safely inside. |
+| MAIN (FULL) | 80  | **74**  | 320 | **312** | Starts 6px below TITLE bottom (y=68); ends y=386                                                                                                                                                    |
+| ACTION      | 140 | **392** | 200 | 48      | Bottom y=440; 40px clearance from circle edge                                                                                                                                                       |
 
 Corner check (MAIN worst case): `(80, 386)` → `sqrt(160²+146²)` = 216.5 < 240 ✓
 Corner check (ACTION worst case): `(140, 440)` → `sqrt(100²+200²)` = 223.6 < 240 ✓
@@ -41,38 +41,38 @@ Four pre-computed zone sets exported as `LAYOUT` from `zones.js`. `ZONE` (legacy
 export const LAYOUT = {
   // Standard: title bar + scrollable main + action button
   FULL: {
-    TITLE:  { x: 120, y: 24,  w: 240, h: 44  },
-    MAIN:   { x: 80,  y: 74,  w: 320, h: 312 },
-    ACTION: { x: 140, y: 392, w: 200, h: 48  },
+    TITLE: { x: 120, y: 24, w: 240, h: 44 },
+    MAIN: { x: 80, y: 74, w: 320, h: 312 },
+    ACTION: { x: 140, y: 392, w: 200, h: 48 },
   },
 
   // No title bar — MAIN starts higher (y=62 = min safe y for x=80 content)
   NO_TITLE: {
-    MAIN:   { x: 80,  y: 62,  w: 320, h: 324 },
-    ACTION: { x: 140, y: 392, w: 200, h: 48  },
+    MAIN: { x: 80, y: 62, w: 320, h: 324 },
+    ACTION: { x: 140, y: 392, w: 200, h: 48 },
   },
 
   // No action button — MAIN extends lower (bottom y=416 = max safe for x=80)
   NO_ACTION: {
-    TITLE:  { x: 120, y: 24,  w: 240, h: 44  },
-    MAIN:   { x: 80,  y: 74,  w: 320, h: 342 },
+    TITLE: { x: 120, y: 24, w: 240, h: 44 },
+    MAIN: { x: 80, y: 74, w: 320, h: 342 },
   },
 
   // Full safe area — entire inscribed rect, no chrome
   MAIN_ONLY: {
-    MAIN:   { x: 80,  y: 62,  w: 320, h: 354 },
+    MAIN: { x: 80, y: 62, w: 320, h: 354 },
   },
 };
 ```
 
 **Which mode for which page:**
 
-| Page | Mode | Reason |
-|------|------|--------|
-| `pages/setup` | `FULL` | Needs "Breathing Setup" title + Start button |
-| `pages/stats` | `NO_ACTION` (future) | Has "Your Journey" title; hardware back — no button. Note: stats page lowest widget currently ends at y=432, which overflows `NO_ACTION` MAIN bottom (y=416) by 16px — will need layout adjustment when migrated. |
-| `pages/session` | `MAIN_ONLY` (future) | Immersive breathing animation; no chrome |
-| `pages/home` | manual | Bespoke layout; will adopt LAYOUT constants as reference points in future cleanup |
+| Page            | Mode                 | Reason                                                                                                                                                                                                            |
+| --------------- | -------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `pages/setup`   | `FULL`               | Needs "Breathing Setup" title + Start button                                                                                                                                                                      |
+| `pages/stats`   | `NO_ACTION` (future) | Has "Your Journey" title; hardware back — no button. Note: stats page lowest widget currently ends at y=432, which overflows `NO_ACTION` MAIN bottom (y=416) by 16px — will need layout adjustment when migrated. |
+| `pages/session` | `MAIN_ONLY` (future) | Immersive breathing animation; no chrome                                                                                                                                                                          |
+| `pages/home`    | manual               | Bespoke layout; will adopt LAYOUT constants as reference points in future cleanup                                                                                                                                 |
 
 ---
 
@@ -95,8 +95,10 @@ class Column {
 
     if (scrollable) {
       this._container = hmUI.createWidget(hmUI.widget.VIEW_CONTAINER, {
-        x: zone.x, y: zone.y,
-        w: zone.w, h: zone.h,   // visible viewport height
+        x: zone.x,
+        y: zone.y,
+        w: zone.w,
+        h: zone.h, // visible viewport height
         scroll_enable: 1,
       });
       this.x = 0;
@@ -112,7 +114,7 @@ class Column {
 
   // Destroy child widgets only — keeps VIEW_CONTAINER alive and z-ordered
   clearContent() {
-    this._widgets.forEach(w => hmUI.deleteWidget(w));
+    this._widgets.forEach((w) => hmUI.deleteWidget(w));
     this._widgets = [];
     this.y = this._startY;
   }
@@ -209,15 +211,21 @@ export function renderPage({ layout, buildFn, title, action }) {
   //    On OLED, black = off — zero performance cost.
   if (layout.TITLE && layout.MAIN) {
     hmUI.createWidget(hmUI.widget.FILL_RECT, {
-      x: 0, y: 0, w: 480, h: layout.MAIN.y, color: COLOR.BG,
+      x: 0,
+      y: 0,
+      w: 480,
+      h: layout.MAIN.y,
+      color: COLOR.BG,
     });
   }
 
   // 3. Title text — drawn on top of the mask
   if (title && layout.TITLE) {
     hmUI.createWidget(hmUI.widget.TEXT, {
-      x: layout.TITLE.x, y: layout.TITLE.y,
-      w: layout.TITLE.w, h: layout.TITLE.h,
+      x: layout.TITLE.x,
+      y: layout.TITLE.y,
+      w: layout.TITLE.w,
+      h: layout.TITLE.h,
       text: title,
       text_size: TYPOGRAPHY.subheadline,
       color: COLOR.TEXT,
@@ -232,7 +240,11 @@ export function renderPage({ layout, buildFn, title, action }) {
   if (layout.MAIN) {
     const mainBottom = layout.MAIN.y + layout.MAIN.h;
     hmUI.createWidget(hmUI.widget.FILL_RECT, {
-      x: 0, y: mainBottom, w: 480, h: 480 - mainBottom, color: COLOR.BG,
+      x: 0,
+      y: mainBottom,
+      w: 480,
+      h: 480 - mainBottom,
+      color: COLOR.BG,
     });
   }
 
@@ -240,7 +252,10 @@ export function renderPage({ layout, buildFn, title, action }) {
   if (action && layout.ACTION) {
     const z = layout.ACTION;
     hmUI.createWidget(hmUI.widget.BUTTON, {
-      x: z.x, y: z.y, w: z.w, h: z.h,
+      x: z.x,
+      y: z.y,
+      w: z.w,
+      h: z.h,
       radius: RADIUS.chip,
       normal_color: COLOR.PRIMARY,
       press_color: COLOR.PRIMARY_PRESSED,
@@ -279,13 +294,13 @@ The `UI` namespace object (`UI.bg()`, `UI.title()`, `UI.column()`, etc.) is **no
 
 ## Files Changed
 
-| File | Repo | Change |
-|------|------|--------|
-| `src/zones.js` | ZeRoUI | Update ZONE coords; add LAYOUT export |
-| `src/column.js` | ZeRoUI | Add `scrollable` + `clearContent()` + `finalize()` |
-| `src/components.js` | ZeRoUI | Add `renderPage()` |
-| `index.js` | ZeRoUI | Export `LAYOUT`, `renderPage` |
-| `pages/setup/index.js` | zepp-meditation | Use `renderPage()` + persistent scrollable Column |
+| File                   | Repo            | Change                                             |
+| ---------------------- | --------------- | -------------------------------------------------- |
+| `src/zones.js`         | ZeRoUI          | Update ZONE coords; add LAYOUT export              |
+| `src/column.js`        | ZeRoUI          | Add `scrollable` + `clearContent()` + `finalize()` |
+| `src/components.js`    | ZeRoUI          | Add `renderPage()`                                 |
+| `index.js`             | ZeRoUI          | Export `LAYOUT`, `renderPage`                      |
+| `pages/setup/index.js` | zepp-meditation | Use `renderPage()` + persistent scrollable Column  |
 
 Home, stats, and session pages are **not** migrated in this change.
 
