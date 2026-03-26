@@ -21,7 +21,7 @@ A reusable UI library for ZeppOS round-display apps. Provides design tokens, a 3
 |----------|--------|-----------|
 | Visual language | Wear OS Material 3 (chips, section labels, solid fill selection) | Modern, glanceable, distinct from broken zeppos-zui aesthetic |
 | Round-display safety | 3-zone system (Title, Main, Action) | Uses full screen height; narrower zones at top/bottom match circle chord width |
-| Multi-device scaling | Design in 480-unit coords, `px()` at runtime | ZeppOS standard; works on 454, 466, 480px devices without code changes |
+| Coordinate system | Raw 480-unit design coords, no `px()` | `hmUI.createWidget()` accepts design-canvas units; ZeppOS scales to device pixels internally via `designWidth: 480` in `app.json`. The existing codebase confirms this — no page uses `px()` on widget coordinates. Using `px()` would double-scale on non-480 devices. |
 | Distribution | npm package (`@bug-breeder/zeroui`) | True version-pinned reuse; `npm link` for local development |
 | API style | Functional draw functions + Column helper | Simple, debuggable, no layout engine; mirrors raw hmUI patterns |
 | Name | ZeRoUI — Ze(pp) + Ro(unded) + UI | Also reads as "Zero UI" — minimal, clean |
@@ -37,13 +37,30 @@ ZeRoUI/
 └── src/
     ├── tokens.js         COLOR, TYPOGRAPHY, RADIUS, SPACING
     ├── zones.js          ZONE.TITLE / ZONE.MAIN / ZONE.ACTION
-    ├── column.js         Column class (auto y-tracking)
+    ├── column.js         Column class (auto y-tracking + widget lifecycle)
     └── components.js     bg, title, actionButton, statCard, heroText
 ```
 
-**No runtime dependencies.** ZeppOS platform APIs (`@zos/ui`, `@zos/utils`) are ambient — provided by the watch runtime, not bundled.
+### `package.json`
 
-**Two import styles:**
+```json
+{
+  "name": "@bug-breeder/zeroui",
+  "version": "0.1.0",
+  "description": "ZeppOS Rounded UI — safe zones, chips, and layout helpers for round OLED watches",
+  "main": "index.js",
+  "type": "module",
+  "files": ["index.js", "src/"],
+  "keywords": ["zeppos", "zepp", "watch", "ui", "round"],
+  "license": "MIT"
+}
+```
+
+No `dependencies` — ZeppOS platform APIs (`@zos/ui`) are ambient, provided by the watch runtime. `zeus build` resolves `node_modules` imports via Rollup, same as the former `zeppos-zui` package.
+
+> **Compatibility note:** If `npm link` fails with `zeus build`, the fallback is a `"@bug-breeder/zeroui": "file:../ZeRoUI"` dependency in the app's `package.json`, which also resolves through `node_modules`.
+
+### Import styles
 
 ```js
 // Namespace (clean call sites)
@@ -51,7 +68,7 @@ import { UI } from '@bug-breeder/zeroui';
 UI.bg();
 UI.title('Setup');
 
-// Named (tree-shakeable, for advanced use or tokens only)
+// Named (for selective imports or direct token access)
 import { bg, title, column, ZONE, COLOR, SPACING } from '@bug-breeder/zeroui';
 ```
 
@@ -121,8 +138,8 @@ export const SPACING = {
   md:          16,
   lg:          24,
   xl:          32,
-  chipGap:     8,   // between stacked chips in a Column
-  sectionGap:  16,  // after last chip before next section label
+  chipGap:     6,   // between stacked chips in a Column
+  sectionGap:  12,  // after last chip before next section label
 };
 ```
 
@@ -137,42 +154,42 @@ A round display clips content near its top/bottom edges because the circle's cho
 ```
 TITLE zone — narrow centered strip at top
   x=120, y=40, w=240, h=44
-  At y=40: chord width = 2√(240²−200²) ≈ 265px > 240 ✓
+  At y=40: chord width = 2√(240²−200²) ≈ 265 > 240 ✓
+  Best for: page title (short text, max ~12 chars at subheadline size)
 
 MAIN zone — inscribed safe rectangle
-  x=80, y=84, w=320, h=284
-  All 4 corners fit inside circle (max dist from center ≈ 226 < 240) ✓
+  x=80, y=84, w=320, h=300
+  All 4 corners inside circle:
+    (80,84):   dist from center ≈ 224 < 240 ✓
+    (400,84):  dist ≈ 224 ✓
+    (80,384):  dist ≈ 215 < 240 ✓
+    (400,384): dist ≈ 215 ✓
+  Best for: main page content (chips, cards, lists, text)
 
-ACTION zone — narrow centered strip at bottom (symmetric to TITLE)
-  x=140, y=380, w=200, h=52
-  At y=432 (bottom edge): chord width ≈ 265px > 200 ✓
+ACTION zone — narrow centered strip at bottom
+  x=140, y=392, w=200, h=48
+  At y=440 (bottom edge): chord width ≈ 265 > 200 ✓
+  Best for: primary action button (one per page)
 ```
 
 ### Implementation
 
 ```js
-import { px } from '@zos/utils';
-
-const DESIGN = {
-  TITLE:  { x: 120, y: 40,  w: 240, h: 44  },
-  MAIN:   { x: 80,  y: 84,  w: 320, h: 284 },
-  ACTION: { x: 140, y: 380, w: 200, h: 52  },
-};
-
-function scaled(z) {
-  return { x: px(z.x), y: px(z.y), w: px(z.w), h: px(z.h) };
-}
+// All values in 480-unit design coords.
+// hmUI.createWidget() accepts these directly — ZeppOS scales
+// to device pixels internally via designWidth in app.json.
+// No px() wrapping needed.
 
 export const ZONE = {
-  TITLE:  scaled(DESIGN.TITLE),
-  MAIN:   scaled(DESIGN.MAIN),
-  ACTION: scaled(DESIGN.ACTION),
+  TITLE:  { x: 120, y: 40,  w: 240, h: 44  },
+  MAIN:   { x: 80,  y: 84,  w: 320, h: 300 },
+  ACTION: { x: 140, y: 392, w: 200, h: 48  },
 };
 ```
 
-**Multi-device:** `px()` converts from the 480-unit design canvas to actual device pixels at runtime. A GTR 4 (466×466) and a GTR 3 Pro (480×480) both get correctly proportioned zones with zero code changes.
+**Multi-device:** Since `hmUI.createWidget()` interprets coordinates relative to `designWidth: 480` (declared in `app.json`), the same zone constants work on all round ZeppOS devices (454×454 GTR 3, 466×466 GTR 4, 480×480 GTR 3 Pro, etc.) without any runtime conversion.
 
-**Escape hatch:** Pages that need custom layouts (e.g., session page breathing rings) skip zones entirely and use raw `hmUI` with `px()` directly. ZeRoUI never forces all widgets through its system.
+**Escape hatch:** Pages that need custom layouts (e.g., session page breathing rings) skip zones entirely and use raw `hmUI` directly. ZeRoUI never forces all widgets through its system.
 
 ---
 
@@ -190,15 +207,37 @@ const col = UI.column(UI.ZONE.MAIN);   // starts at zone.y
 col.sectionLabel('Technique');          // renders TEXT, advances y
 col.chip('Box (4-4-4-4)', opts);        // renders BUTTON, advances y
 col.chipRow(['3','5','10'], opts);       // renders N buttons in a row, advances y
-col.spacer(SPACING.sectionGap);         // adds gap without rendering
+col.spacer(16);                         // adds gap without rendering
 col.currentY;                           // escape hatch: read current y position
+col.destroyAll();                       // delete all widgets created by this Column, reset y
+```
+
+### Widget Lifecycle
+
+The Column tracks every widget it creates. Calling `col.destroyAll()` deletes all tracked widgets via `hmUI.deleteWidget()` and resets `y` to the zone's starting position. This is essential for pages like Setup that rebuild their chip list on every selection change.
+
+**Pattern for rebuildable sections:**
+
+```js
+let col;
+function rebuild() {
+  if (col) col.destroyAll();  // delete previous widgets, reset y
+  col = UI.column(UI.ZONE.MAIN);
+  col.sectionLabel('Technique');
+  TECHNIQUE_KEYS.forEach(key => {
+    col.chip(TECHNIQUE_NAMES[key], {
+      selected: selectedTechnique === key,
+      onPress: () => { selectedTechnique = key; rebuild(); },
+    });
+  });
+  // ...
+}
 ```
 
 ### Implementation
 
 ```js
 import hmUI from '@zos/ui';
-import { px } from '@zos/utils';
 import { COLOR, TYPOGRAPHY, RADIUS, SPACING } from './tokens.js';
 
 export class Column {
@@ -206,37 +245,53 @@ export class Column {
     this.x = zone.x;
     this.w = zone.w;
     this.y = zone.y;
+    this._startY = zone.y;
+    this._widgets = [];  // tracked for destroyAll()
   }
 
-  // Reserve h pixels, return y where the item should draw
+  // Internal: reserve h design-units, return y where item draws
   _slot(h, gapAfter = 0) {
     const y = this.y;
-    this.y += h + px(gapAfter);
+    this.y += h + gapAfter;
     return y;
   }
 
+  // Internal: create widget and track it
+  _create(type, props) {
+    const w = hmUI.createWidget(type, props);
+    if (w) this._widgets.push(w);
+    return w;
+  }
+
+  // Delete all widgets created by this Column, reset y
+  destroyAll() {
+    this._widgets.forEach(w => hmUI.deleteWidget(w));
+    this._widgets = [];
+    this.y = this._startY;
+  }
+
   sectionLabel(text) {
-    const h = px(32);
+    const h = 28;
     const y = this._slot(h, SPACING.sm);
-    return hmUI.createWidget(hmUI.widget.TEXT, {
+    return this._create(hmUI.widget.TEXT, {
       x: this.x, y, w: this.w, h,
       text,
-      text_size: px(TYPOGRAPHY.caption),
+      text_size: TYPOGRAPHY.caption,
       color: COLOR.TEXT_MUTED,
       align_h: hmUI.align.CENTER_H,
     });
   }
 
   chip(text, { selected = false, onPress } = {}) {
-    const h = px(48);
+    const h = 44;
     const y = this._slot(h, SPACING.chipGap);
-    return hmUI.createWidget(hmUI.widget.BUTTON, {
+    return this._create(hmUI.widget.BUTTON, {
       x: this.x, y, w: this.w, h,
-      radius: px(RADIUS.chip),
+      radius: RADIUS.chip,
       normal_color: selected ? COLOR.PRIMARY_TINT : COLOR.SURFACE,
-      press_color:  selected ? COLOR.PRIMARY_TINT : COLOR.SURFACE_PRESSED,
+      press_color:  selected ? COLOR.PRIMARY_PRESSED : COLOR.SURFACE_PRESSED,
       text,
-      text_size: px(TYPOGRAPHY.subheadline),
+      text_size: TYPOGRAPHY.subheadline,
       color: selected ? COLOR.PRIMARY : COLOR.TEXT,
       click_func: onPress,
     });
@@ -244,53 +299,75 @@ export class Column {
 
   chipRow(options, { selected, onPress } = {}) {
     const count = options.length;
-    const gap = px(SPACING.sm);
+    const gap = SPACING.sm;
     const chipW = Math.floor((this.w - gap * (count - 1)) / count);
-    const h = px(48);
+    const h = 44;
     const y = this._slot(h, SPACING.chipGap);
     return options.map((opt, i) => {
       const isSel = String(opt) === String(selected);
-      return hmUI.createWidget(hmUI.widget.BUTTON, {
+      return this._create(hmUI.widget.BUTTON, {
         x: this.x + i * (chipW + gap), y,
         w: chipW, h,
-        radius: px(RADIUS.pill),
+        radius: RADIUS.pill,
         normal_color: isSel ? COLOR.PRIMARY_TINT : COLOR.SURFACE,
         press_color:  COLOR.SURFACE_PRESSED,
         text: String(opt),
-        text_size: px(TYPOGRAPHY.subheadline),
+        text_size: TYPOGRAPHY.subheadline,
         color: isSel ? COLOR.PRIMARY : COLOR.TEXT,
         click_func: () => onPress && onPress(opt),
       });
     });
   }
 
-  spacer(n) { this.y += px(n); }
+  spacer(n) { this.y += n; }
 
   get currentY() { return this.y; }
 }
+```
+
+### Setup page content height verification
+
+With chip height 44 and chipGap 6:
+
+```
+sectionLabel('Technique'):  28 + 8 (sm gap)  =  36
+chip × 3:                   3 × (44 + 6)     = 150
+spacer(sectionGap):                           =  12
+sectionLabel('Rounds'):     28 + 8            =  36
+chipRow (1 row):            44 + 6            =  50
+                                        Total = 284
+MAIN zone height:                             = 300 ✓ (16 units spare)
 ```
 
 ---
 
 ## Components — `src/components.js`
 
+All coordinates are in 480-unit design canvas. No `px()` wrapping — `hmUI.createWidget()` handles device scaling via `designWidth: 480`.
+
 ### Phase 1 (what zepp-breathe needs)
 
 ```js
+import hmUI from '@zos/ui';
+import { COLOR, TYPOGRAPHY, RADIUS } from './tokens.js';
+import { ZONE } from './zones.js';
+import { Column } from './column.js';
+
 // bg() — OLED black fill. Always call first in build().
 export function bg() {
   hmUI.createWidget(hmUI.widget.FILL_RECT, {
-    x: 0, y: 0, w: px(480), h: px(480), color: COLOR.BG,
+    x: 0, y: 0, w: 480, h: 480, color: COLOR.BG,
   });
 }
 
 // title(text) — page heading in TITLE zone, centered
+// Max ~12 chars at subheadline (28px) size within 240-unit width.
 export function title(text) {
   const z = ZONE.TITLE;
   return hmUI.createWidget(hmUI.widget.TEXT, {
     x: z.x, y: z.y, w: z.w, h: z.h,
     text,
-    text_size: px(TYPOGRAPHY.subheadline),
+    text_size: TYPOGRAPHY.subheadline,
     color: COLOR.TEXT,
     align_h: hmUI.align.CENTER_H,
   });
@@ -306,49 +383,52 @@ export function actionButton(text, { onPress } = {}) {
   const z = ZONE.ACTION;
   return hmUI.createWidget(hmUI.widget.BUTTON, {
     x: z.x, y: z.y, w: z.w, h: z.h,
-    radius: px(RADIUS.pill),
+    radius: RADIUS.pill,
     normal_color: COLOR.SECONDARY,
     press_color: COLOR.SECONDARY_PRESSED,
     text,
-    text_size: px(TYPOGRAPHY.subheadline),
+    text_size: TYPOGRAPHY.subheadline,
     color: COLOR.TEXT,
     click_func: onPress,
   });
 }
 
-// heroText(text, { y, color }) — large centered number at free y position
+// heroText(text, { y, color }) — large centered number at a specific y position
+// Uses MAIN zone x/w for horizontal bounds.
 export function heroText(text, { y, color = COLOR.TEXT } = {}) {
   return hmUI.createWidget(hmUI.widget.TEXT, {
-    x: ZONE.MAIN.x, y: px(y), w: ZONE.MAIN.w, h: px(60),
+    x: ZONE.MAIN.x, y, w: ZONE.MAIN.w, h: 60,
     text: String(text),
-    text_size: px(TYPOGRAPHY.largeTitle),
+    text_size: TYPOGRAPHY.largeTitle,
     color,
     align_h: hmUI.align.CENTER_H,
   });
 }
 
 // statCard({ y, w, h, title, value, valueColor }) — metric display card
+// Returns array of all 3 widgets [bg, value, label] for lifecycle management.
 export function statCard({ y, w = 320, h = 80, title: cardTitle, value, valueColor = COLOR.TEXT } = {}) {
-  const x = px(Math.round((480 - w) / 2)); // center on canvas
-  const yw = px(y);
-  hmUI.createWidget(hmUI.widget.FILL_RECT, {
-    x, y: yw, w: px(w), h: px(h),
-    radius: px(RADIUS.card), color: COLOR.SURFACE,
-  });
-  hmUI.createWidget(hmUI.widget.TEXT, {
-    x, y: px(y + 10), w: px(w), h: px(40),
+  const x = Math.round((480 - w) / 2); // center on canvas
+  const widgets = [];
+  widgets.push(hmUI.createWidget(hmUI.widget.FILL_RECT, {
+    x, y, w, h,
+    radius: RADIUS.card, color: COLOR.SURFACE,
+  }));
+  widgets.push(hmUI.createWidget(hmUI.widget.TEXT, {
+    x, y: y + 10, w, h: 40,
     text: String(value),
-    text_size: px(TYPOGRAPHY.title),
+    text_size: TYPOGRAPHY.title,
     color: valueColor,
     align_h: hmUI.align.CENTER_H,
-  });
-  return hmUI.createWidget(hmUI.widget.TEXT, {
-    x, y: px(y + h - 30), w: px(w), h: px(24),
+  }));
+  widgets.push(hmUI.createWidget(hmUI.widget.TEXT, {
+    x, y: y + h - 30, w, h: 24,
     text: String(cardTitle),
-    text_size: px(TYPOGRAPHY.caption),
+    text_size: TYPOGRAPHY.caption,
     color: COLOR.TEXT_MUTED,
     align_h: hmUI.align.CENTER_H,
-  });
+  }));
+  return widgets;
 }
 ```
 
@@ -372,7 +452,7 @@ import { bg, title, column, actionButton, heroText, statCard } from './src/compo
 // Namespace import: import { UI } from '@bug-breeder/zeroui'
 export const UI = { bg, title, column, actionButton, heroText, statCard, ZONE, COLOR, TYPOGRAPHY, RADIUS, SPACING };
 
-// Named exports for tree-shaking: import { bg, ZONE, COLOR } from '@bug-breeder/zeroui'
+// Named exports: import { bg, ZONE, COLOR } from '@bug-breeder/zeroui'
 export { COLOR, TYPOGRAPHY, RADIUS, SPACING, ZONE, Column, bg, title, column, actionButton, heroText, statCard };
 ```
 
@@ -383,10 +463,10 @@ export { COLOR, TYPOGRAPHY, RADIUS, SPACING, ZONE, Column, bg, title, column, ac
 | File | Change |
 |------|--------|
 | `pages/setup/index.js` | Full rewrite: `UI.title()` + `Column` with `.chip()`/`.chipRow()` + `UI.actionButton()` replaces manual widget loop |
-| `pages/home/index.js` | Replace background + title with `UI.bg()` + `UI.title()`; keep existing BUTTONs (custom layout) |
-| `pages/stats/index.js` | `UI.bg()` + `UI.title()` + `UI.statCard()` for streak display; heatmap grid stays raw hmUI |
+| `pages/home/index.js` | Add `UI.bg()` (currently has no background FILL_RECT); add `UI.title()`; keep existing BUTTONs (custom layout) |
+| `pages/stats/index.js` | Add `UI.bg()`; add `UI.title()`; add `UI.statCard()` for streak display; heatmap grid stays raw hmUI |
 | `pages/session/index.js` | **No change** — custom animated screen with ARC rings, raw hmUI is correct |
-| `utils/constants.js` | Strip COLOR + TYPOGRAPHY (now from ZeRoUI); keep DEVICE_WIDTH + app-specific SESSION colors |
+| `utils/constants.js` | Strip COLOR + TYPOGRAPHY (now from ZeRoUI); keep DEVICE_WIDTH + app-specific colors (ring glow, heatmap today-green) |
 | `package.json` | Add `@bug-breeder/zeroui` dependency |
 
 ---
@@ -402,12 +482,18 @@ export { COLOR, TYPOGRAPHY, RADIUS, SPACING, ZONE, Column, bg, title, column, ac
 
 ---
 
+## Error Handling Policy
+
+ZeRoUI follows the same contract as raw `hmUI`: widget creation may return `null` (ZeppOS gotcha #1). **Null-checking widget returns is the consumer's responsibility**, same as when calling `hmUI.createWidget()` directly. The `Column._create()` method does filter null from its tracked widgets list to prevent `deleteWidget(null)` errors in `destroyAll()`.
+
+---
+
 ## Verification
 
 After implementation:
 
-- `npm run verify` passes in both ZeRoUI and zepp-breathe
-- `npm link @bug-breeder/zeroui` works from zepp-breathe
+- `npm run verify` passes in zepp-breathe
+- `npm link @bug-breeder/zeroui` (or `file:` dependency) works from zepp-breathe with `zeus build`
 - Setup page renders with chip components, section labels centered, nothing clipped by round bezel
 - Home and stats pages render with UI library primitives
 - Session page is unchanged (still works with raw hmUI)
