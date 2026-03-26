@@ -35,6 +35,6 @@
     "prettier": "^3.8.1"
   },
   "dependencies": {
-    "zeppos-zui": "^1.0.0"
+    "@bug-breeder/zeroui": "file:../ZeRoUI"
   }
 }
