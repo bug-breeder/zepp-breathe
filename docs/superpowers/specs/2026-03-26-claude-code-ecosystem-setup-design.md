@@ -20,6 +20,10 @@ Three repos form a tightly related ZeppOS ecosystem:
 
 **Skill quality problem:** The existing `zeppos.md` command is a monolithic dump (500+ lines, obvious info, no progressive disclosure). Violates Thariq's best practices: don't state the obvious, build a gotchas section, use the filesystem for progressive disclosure.
 
+**Sources used for skill content:**
+- `shanraisshan/claude-code-best-practice` — skill writing best practices (Thariq's 9 tips)
+- `PokeFlow/zeppos-docs` — authoritative ZeppOS API reference, non-obvious platform behaviors
+
 ---
 
 ## Principles (apply to all skill/command content)
@@ -198,7 +202,7 @@ Both files need the same structural fixes. **zepp-meditation** fills in its actu
 **App header (zepp-meditation only):**
 ```
 # Breathe
-App: Haptic-guided breathing exercises for ADHD adults
+App: Haptic-guided breathing exercises for smartwatch
 App ID: 10000001 (replace with real ID from Zepp Open Platform)
 ```
 
@@ -259,28 +263,40 @@ Name is `zeppos` so `/zeppos [question]` continues to work unchanged.
 
 ### `SKILL.md` content
 
-~50 lines. Structure:
-1. One-line platform summary (QuickJS, 480-unit canvas, round OLED)
-2. **Gotchas** section — non-obvious only, in order of how often they cause bugs:
+~70 lines. Structure:
+1. One-line platform summary (QuickJS ES2020, 480-unit design canvas, round OLED)
+2. **Gotchas** section — non-obvious only, highest-frequency bugs first:
    - Widget null check before `setProperty` → silent crash
    - Module-level `let x = 0` NOT reset on page revisit → always reset in `onInit`
    - `FILL_RECT.addEventListener(CLICK_UP)` silently fails on device → always use `BUTTON` with `click_func`
+   - `IMG` widget: `w`/`h` define the **clipping boundary**, not image scale — images always render at their actual file dimensions; use `pos_x`/`pos_y` for offset within the boundary
+   - App lifecycle order: App `onCreate` fires **before** page `onInit` — never draw UI in `onCreate`
    - `offGesture()` / `offKey()` required in `onDestroy` if registered
    - `vibrator.stop()` required in `onDestroy` → runs indefinitely otherwise
+   - `createTimer` returns a `timerId` — call `stopTimer(timerId)` in `onDestroy` (leak if not stopped)
    - `params` via `JSON.stringify({...})` in push/replace, NOT `globalData`
    - `catch (e)` with unused binding → use `catch { }` (ES2019 optional catch)
-   - App-service `onInit` runs once → alarm chain (`@zos/alarm`) for recurrence, not `setInterval`
+   - App-service `onInit` single-shot with **600ms timeout** → alarm chain for recurrence, never `setInterval`
+   - App-service file writes only allowed when screen is off or in AOD mode
    - `LocalStorage` in app-service must be imported directly (not via `utils/storage.js`)
    - Icon must be at `assets/common.r/icon.png` (not `assets/icon.png`)
+   - Text overflow: set `text_style: hmUI.text_style.ELLIPSIS` for single-line truncation with "..."
 3. Pointer: "For full API reference, read `references/api.md`"
 
 ### `references/api.md` content
 
-Current `zeppos.md` content, cleaned up:
+Current `zeppos.md` content, cleaned up and enriched from zeppos-docs:
 - Remove "ZUI layout containers are broken" gotcha (obsolete)
 - Add ZeRoUI note: "Use `@bug-breeder/zeroui` for page layout. Raw `hmUI` only for widgets ZeRoUI doesn't cover."
 - Remove any content Claude obviously already knows (basic JS, basic console.log, etc.)
-- Keep: hmUI widget catalog, router, storage, sensors, interaction, alarms, display, bg-service, page scaffold example
+- Keep: hmUI widget catalog, router, storage, sensors, interaction, alarms, display, bg-service, page scaffold
+- **Add from zeppos-docs:**
+  - `createTimer(delay_ms, repeat_ms, callback, option)` signature and `stopTimer(id)` cleanup
+  - `hmFS` file operations: `O_RDONLY`, `O_RDWR | O_CREAT`, `assets://` and `data://` path prefixes (v3+)
+  - Full app-service limitations list (no timer APIs, no UI modules, no high-power sensors, 600ms timeout)
+  - System events available to app-service (`event:os.health.sleep_status`, `event:os.system.sleep_mode`, etc.)
+  - Widget show_level: `hmUI.show_level.ONLY_NORMAL` vs `hmUI.show_level.ONAL_AOD` for AOD widgets
+  - `text_style` values: `hmUI.text_style.NONE` (scroll) vs `hmUI.text_style.ELLIPSIS` (truncate)
 
 ---
 
@@ -363,9 +379,11 @@ Role: Review ZeppOS app code for correctness, platform compliance, and ZeRoUI us
 *Platform correctness:*
 - Module-level vars reset in `onInit`?
 - `offGesture`/`offKey`/`vibrator.stop()` in `onDestroy` if used?
+- `createTimer` result stored? `stopTimer(id)` called in `onDestroy`?
 - Navigation data via `params`, not `globalData`?
 - New `@zos/*` APIs registered in `app.json` permissions?
 - New pages/services registered in `app.json`?
+- Any UI draw calls in `App.onCreate`? (illegal — page not loaded yet)
 
 *ZeRoUI correctness:*
 - `col.finalize()` called after all items added?
