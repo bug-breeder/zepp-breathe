@@ -14,7 +14,8 @@ Review ZeppOS app code for correctness, platform compliance, and ZeRoUI usage. C
 
 **Check for:**
 
-*Platform correctness:*
+_Platform correctness:_
+
 - Module-level vars not reset in `onInit` — silent bug, persists across page visits
 - `offGesture()` / `offKey()` missing from `onDestroy` if registered
 - `vibrator.stop()` missing from `onDestroy` if Vibrator was started
@@ -24,12 +25,14 @@ Review ZeppOS app code for correctness, platform compliance, and ZeRoUI usage. C
 - New `@zos/*` APIs not listed in `app.json` permissions
 - New pages/services not registered in `app.json`
 
-*ZeRoUI usage:*
+_ZeRoUI usage:_
+
 - Scrollable Column missing `col.finalize()` after items added
 - `col.destroyAll()` called in a rebuild loop (use `clearContent()`)
 - Raw `hmUI` layout code where `renderPage()` + `Column` would serve
 
-*Code quality:*
+_Code quality:_
+
 - Unused imports or variables
 - `catch (e)` with unused `e` binding
 - Magic numbers that belong in ZeRoUI tokens or `utils/constants.js`

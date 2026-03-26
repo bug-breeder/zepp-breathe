@@ -13,12 +13,12 @@ import { UI } from '@bug-breeder/zeroui'; // namespace form
 
 ## LAYOUT modes
 
-| Mode | Use when |
-|---|---|
-| `LAYOUT.FULL` | title + scrollable content + action button (most pages) |
-| `LAYOUT.NO_TITLE` | no title bar, content starts higher |
-| `LAYOUT.NO_ACTION` | no bottom button, content extends lower |
-| `LAYOUT.MAIN_ONLY` | fullscreen / immersive / session pages |
+| Mode               | Use when                                                |
+| ------------------ | ------------------------------------------------------- |
+| `LAYOUT.FULL`      | title + scrollable content + action button (most pages) |
+| `LAYOUT.NO_TITLE`  | no title bar, content starts higher                     |
+| `LAYOUT.NO_ACTION` | no bottom button, content extends lower                 |
+| `LAYOUT.MAIN_ONLY` | fullscreen / immersive / session pages                  |
 
 ## renderPage()
 
@@ -41,11 +41,11 @@ Handles z-order: bg → buildFn output → top mask → title → bottom mask �
 
 ```js
 const col = column(LAYOUT.FULL.MAIN, { scrollable: true });
-col.sectionLabel('Section name');           // muted caption label
-col.chip('Label', { selected, onPress });   // full-width tappable chip
-col.chipRow(['A','B','C'], { selected: 'B', onPress: (val) => {} }); // inline row
-col.spacer(16);                             // add vertical gap
-col.finalize();                             // REQUIRED after all items (scrollable)
+col.sectionLabel('Section name'); // muted caption label
+col.chip('Label', { selected, onPress }); // full-width tappable chip
+col.chipRow(['A', 'B', 'C'], { selected: 'B', onPress: (val) => {} }); // inline row
+col.spacer(16); // add vertical gap
+col.finalize(); // REQUIRED after all items (scrollable)
 // Rebuild: col.clearContent() → re-add items → col.finalize()
 // Teardown: col.destroyAll() — call only in page onDestroy()
 ```
