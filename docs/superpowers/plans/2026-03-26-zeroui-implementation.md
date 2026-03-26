@@ -16,25 +16,25 @@
 
 ### ZeRoUI repo (all new — `~/Code/Others/ZeRoUI/`)
 
-| File | Responsibility |
-|------|---------------|
-| `package.json` | npm metadata, `@bug-breeder/zeroui` |
-| `index.js` | Re-exports UI namespace + named exports |
-| `src/tokens.js` | COLOR, TYPOGRAPHY, RADIUS, SPACING constants |
-| `src/zones.js` | ZONE.TITLE / ZONE.MAIN / ZONE.ACTION safe areas |
-| `src/column.js` | Column class — auto y-tracking + widget lifecycle |
+| File                | Responsibility                                      |
+| ------------------- | --------------------------------------------------- |
+| `package.json`      | npm metadata, `@bug-breeder/zeroui`                 |
+| `index.js`          | Re-exports UI namespace + named exports             |
+| `src/tokens.js`     | COLOR, TYPOGRAPHY, RADIUS, SPACING constants        |
+| `src/zones.js`      | ZONE.TITLE / ZONE.MAIN / ZONE.ACTION safe areas     |
+| `src/column.js`     | Column class — auto y-tracking + widget lifecycle   |
 | `src/components.js` | bg, title, column, actionButton, heroText, statCard |
 
 ### zepp-breathe repo (`~/Code/Others/zepp-meditation/`)
 
-| File | Change |
-|------|--------|
-| `package.json` | Add `@bug-breeder/zeroui` dependency |
-| `pages/setup/index.js` | Full rewrite — Column + chips + actionButton |
-| `pages/home/index.js` | Add `UI.bg()`, replace magic hex with ZeRoUI tokens |
-| `pages/stats/index.js` | Add `UI.bg()` + `UI.title()`, replace magic hex with ZeRoUI tokens |
-| `pages/session/index.js` | Import COLOR/TYPOGRAPHY from ZeRoUI instead of constants |
-| `utils/constants.js` | Strip COLOR/TYPOGRAPHY (now in ZeRoUI); keep DEVICE_WIDTH + SESSION colors |
+| File                     | Change                                                                     |
+| ------------------------ | -------------------------------------------------------------------------- |
+| `package.json`           | Add `@bug-breeder/zeroui` dependency                                       |
+| `pages/setup/index.js`   | Full rewrite — Column + chips + actionButton                               |
+| `pages/home/index.js`    | Add `UI.bg()`, replace magic hex with ZeRoUI tokens                        |
+| `pages/stats/index.js`   | Add `UI.bg()` + `UI.title()`, replace magic hex with ZeRoUI tokens         |
+| `pages/session/index.js` | Import COLOR/TYPOGRAPHY from ZeRoUI instead of constants                   |
+| `utils/constants.js`     | Strip COLOR/TYPOGRAPHY (now in ZeRoUI); keep DEVICE_WIDTH + SESSION colors |
 
 ---
 
@@ -52,6 +52,7 @@ gh auth switch --user bug-breeder
 ## Task 1: Create ZeRoUI repository with all source files
 
 **Files:**
+
 - Create: `~/Code/Others/ZeRoUI/package.json`
 - Create: `~/Code/Others/ZeRoUI/src/tokens.js`
 - Create: `~/Code/Others/ZeRoUI/src/zones.js`
@@ -423,14 +424,7 @@ export function statCard({
 import { COLOR, TYPOGRAPHY, RADIUS, SPACING } from './src/tokens.js';
 import { ZONE } from './src/zones.js';
 import { Column } from './src/column.js';
-import {
-  bg,
-  title,
-  column,
-  actionButton,
-  heroText,
-  statCard,
-} from './src/components.js';
+import { bg, title, column, actionButton, heroText, statCard } from './src/components.js';
 
 export const UI = {
   bg,
@@ -475,6 +469,7 @@ git commit -m "feat: initial ZeRoUI library — tokens, zones, Column, component
 ## Task 2: Link ZeRoUI into zepp-breathe and verify build
 
 **Files:**
+
 - Modify: `~/Code/Others/zepp-meditation/package.json`
 
 - [ ] **Step 1: Register npm link in ZeRoUI**
@@ -545,6 +540,7 @@ git commit -m "chore: link @bug-breeder/zeroui dependency"
 The biggest change — full rewrite using ZeRoUI Column + chips.
 
 **Files:**
+
 - Modify: `~/Code/Others/zepp-meditation/pages/setup/index.js`
 
 - [ ] **Step 1: Read the current setup page to understand it**
@@ -654,6 +650,7 @@ git commit -m "feat: rewrite setup page with ZeRoUI Column + chips"
 Minimal change — add `UI.bg()`, replace magic hex values with ZeRoUI color tokens.
 
 **Files:**
+
 - Modify: `~/Code/Others/zepp-meditation/pages/home/index.js`
 
 - [ ] **Step 1: Update imports**
@@ -686,15 +683,15 @@ UI.bg();
 
 Apply these replacements throughout the file:
 
-| Before | After |
-|--------|-------|
-| `w: DEVICE_WIDTH` | `w: 480` |
-| `color: 0xffffff` | `color: COLOR.TEXT` |
+| Before                                        | After                                                      |
+| --------------------------------------------- | ---------------------------------------------------------- |
+| `w: DEVICE_WIDTH`                             | `w: 480`                                                   |
+| `color: 0xffffff`                             | `color: COLOR.TEXT`                                        |
 | `color: streakDays > 0 ? 0xff9f0a : 0x8e8e93` | `color: streakDays > 0 ? COLOR.WARNING : COLOR.TEXT_MUTED` |
-| `normal_color: 0x007aff` | `normal_color: COLOR.SECONDARY` |
-| `normal_color: 0x1c1c1e` | `normal_color: COLOR.SURFACE` |
-| `color: 0x8e8e93` (Stats button text) | `color: COLOR.TEXT_MUTED` |
-| `press_color: COLOR.CARD_PRESSED` | `press_color: COLOR.SURFACE_PRESSED` |
+| `normal_color: 0x007aff`                      | `normal_color: COLOR.SECONDARY`                            |
+| `normal_color: 0x1c1c1e`                      | `normal_color: COLOR.SURFACE`                              |
+| `color: 0x8e8e93` (Stats button text)         | `color: COLOR.TEXT_MUTED`                                  |
+| `press_color: COLOR.CARD_PRESSED`             | `press_color: COLOR.SURFACE_PRESSED`                       |
 
 > Keep `color: 0x636366` as-is — it's a one-off darker gray not worth adding to the token set.
 
@@ -720,6 +717,7 @@ git commit -m "feat: migrate home page to ZeRoUI tokens + bg"
 Add `UI.bg()` and `UI.title()`, replace magic hex with tokens. Heatmap stays raw hmUI.
 
 **Files:**
+
 - Modify: `~/Code/Others/zepp-meditation/pages/stats/index.js`
 
 - [ ] **Step 1: Update imports**
@@ -774,11 +772,11 @@ UI.title('Your Journey');
 
 - [ ] **Step 4: Replace remaining magic hex values**
 
-| Before | After |
-|--------|-------|
-| `color: COLOR.CARD` (line 62 — future cells in heatmap) | `color: COLOR.SURFACE` |
+| Before                                                             | After                  |
+| ------------------------------------------------------------------ | ---------------------- |
+| `color: COLOR.CARD` (line 62 — future cells in heatmap)            | `color: COLOR.SURFACE` |
 | `color: COLOR.CARD` (line 69 — non-practiced past days in heatmap) | `color: COLOR.SURFACE` |
-| `color: 0xff9f0a` (streak number active) | `color: COLOR.WARNING` |
+| `color: 0xff9f0a` (streak number active)                           | `color: COLOR.WARNING` |
 
 Both `COLOR.CARD` references in `buildHeatmap()` must be replaced — they will be `undefined` once constants.js is stripped and will render as black (invisible on OLED).
 
@@ -806,6 +804,7 @@ git commit -m "feat: migrate stats page to ZeRoUI tokens + bg + title"
 Session page gets minimal import change (no UI changes). Constants.js is stripped down to app-specific values only.
 
 **Files:**
+
 - Modify: `~/Code/Others/zepp-meditation/pages/session/index.js`
 - Modify: `~/Code/Others/zepp-meditation/utils/constants.js`
 
