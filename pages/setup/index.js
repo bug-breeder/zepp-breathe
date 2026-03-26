@@ -1,7 +1,7 @@
 // pages/setup/index.js
 import { push } from '@zos/router';
 import { get, getKey } from '../../utils/storage';
-import { UI, SPACING } from '@bug-breeder/zeroui';
+import { LAYOUT, SPACING, renderPage, UI } from '@bug-breeder/zeroui';
 import {
   TECHNIQUE_NAMES,
   TECHNIQUE_KEYS,
@@ -9,14 +9,19 @@ import {
   TECHNIQUES,
 } from '../../utils/techniques';
 
-// Module-level state — reset in onInit
+// Module-level state — ALL reset in onInit on every page visit
 let selectedTechnique = 'box';
 let selectedRounds = 5;
 let col = null;
 
 function rebuild() {
-  if (col) col.destroyAll();
-  col = UI.column(UI.ZONE.MAIN);
+  if (col) {
+    // Subsequent calls: wipe chips only, keep VIEW_CONTAINER z-order intact
+    col.clearContent();
+  } else {
+    // First call (from buildFn inside renderPage): create the scrollable Column
+    col = UI.column(LAYOUT.FULL.MAIN, { scrollable: true });
+  }
 
   col.sectionLabel('Technique');
   TECHNIQUE_KEYS.forEach((key) => {
@@ -38,6 +43,9 @@ function rebuild() {
       rebuild();
     },
   });
+
+  // Required when scrollable=true: sets VIEW_CONTAINER total scroll height
+  col.finalize();
 }
 
 Page({
@@ -50,23 +58,29 @@ Page({
   },
 
   build() {
-    UI.bg();
-    UI.title('Breathing Setup');
-    rebuild();
-    UI.actionButton('Start', {
-      onPress: () => {
-        push({
-          url: 'pages/session/index',
-          params: JSON.stringify({
-            technique: selectedTechnique,
-            rounds: selectedRounds,
-          }),
-        });
+    renderPage({
+      layout: LAYOUT.FULL,
+      title: 'Breathing Setup',
+      action: {
+        text: 'Start',
+        onPress: () => {
+          push({
+            url: 'pages/session/index',
+            params: JSON.stringify({
+              technique: selectedTechnique,
+              rounds: selectedRounds,
+            }),
+          });
+        },
       },
+      buildFn: () => rebuild(), // called before masks/title/action → correct z-order
     });
   },
 
   onDestroy() {
-    col = null;
+    if (col) {
+      col.destroyAll();
+      col = null;
+    }
   },
 });
