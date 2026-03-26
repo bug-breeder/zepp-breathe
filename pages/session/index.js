@@ -4,7 +4,8 @@ import { replace, pop } from '@zos/router';
 import { Vibrator } from '@zos/sensor';
 import { onGesture, offGesture, GESTURE_DOWN } from '@zos/interaction';
 import { TECHNIQUES } from '../../utils/techniques';
-import { COLOR, DEVICE_WIDTH, TYPOGRAPHY } from '../../utils/constants';
+import { COLOR, TYPOGRAPHY } from '@bug-breeder/zeroui';
+import { DEVICE_WIDTH } from '../../utils/constants';
 import { get, set, getKey } from '../../utils/storage';
 import { getDateString, getYesterdayString, getDateNDaysAgo } from '../../utils/date';
 
