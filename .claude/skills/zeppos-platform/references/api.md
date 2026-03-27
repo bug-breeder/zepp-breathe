@@ -1,18 +1,3 @@
-You are an expert ZeppOS developer. Before responding to: $ARGUMENTS
-
-Internalize all the context below, then answer.
-
----
-
-## Platform
-
-- **Target:** ZeppOS smartwatches (round OLED, all sizes via `common` target)
-- **OS:** ZeppOS 3.6+ (API target 3.7)
-- **Runtime:** QuickJS (ES2020 subset) — no DOM, no Node.js, no browser APIs
-- **Build:** Zeus CLI → Rollup bundles → QJSC compiles to bytecode
-
----
-
 ## ZeppOS API Reference
 
 ### UI — `@zos/ui` (imported as `hmUI`)
@@ -34,6 +19,55 @@ import hmUI from '@zos/ui';
   - To reset scroll and update data: `list.setProperty(hmUI.prop.UPDATE_DATA, { ...config, on_page: 0 })`
 - `IMG`: `auto_scale: true` + `auto_scale_obj_fit: 1` for aspect-ratio-preserving scale
 - Min text size: **24px** (caption) for readability on round watch face
+
+### Timer — `createTimer` / `stopTimer`
+
+```js
+// delay_ms: first fire delay; repeat_ms: 0 = one-shot, >0 = interval
+// option is passed as-is to callback each invocation
+const timerId = createTimer(delay_ms, repeat_ms, callback, option);
+stopTimer(timerId); // call in onDestroy — leaks if not stopped
+```
+
+### File system — `@zos/fs` (v3+)
+
+```js
+import { openSync, readSync, writeSync, closeSync, statSync } from '@zos/fs';
+
+// Flags: O_RDONLY, O_WRONLY, O_RDWR, O_CREAT, O_TRUNC, O_APPEND, O_EXCL
+// Combine: O_RDWR | O_CREAT
+// Path prefixes: 'assets://raw/data.txt' (read-only), 'data://settings.json' (read-write)
+const fd = openSync({ path: 'data://config.json', flag: O_RDWR | O_CREAT });
+// ... read/write/close
+closeSync({ fd });
+```
+
+App-service file writes: only when screen is off or in AOD mode.
+
+### Widget show_level (AOD / always-on display)
+
+```js
+hmUI.show_level.ONLY_NORMAL; // render in normal screen-on mode only
+hmUI.show_level.ONAL_AOD; // render in screen-off / AOD mode only
+// Set at widget creation: { ..., show_level: hmUI.show_level.ONLY_NORMAL }
+```
+
+### App-service system events
+
+Register in `app.json` permissions and listen with `@zos/app-service`:
+
+- `event:os.health.sleep_status` — sleep state change
+- `event:os.health.heart_rate_abnl` — abnormal heart rate alert
+- `event:os.health.wear_status` — wearing status change
+- `event:os.system.sleep_mode` — sleep mode enter/exit (`{ status: 'enter' | 'exit' }`)
+- `event:os.weather.sun_rise` / `sun_set` / `moon_rise` / `moon_set`
+
+### text_style values
+
+```js
+hmUI.text_style.NONE; // scrolling text (default)
+hmUI.text_style.ELLIPSIS; // single line, truncate with "..."
+```
 
 ### Router — `@zos/router`
 
@@ -166,6 +200,7 @@ stop({ file: 'app-service/index' });
 ```js
 import hmUI from '@zos/ui';
 import { COLOR, TYPOGRAPHY } from '../../utils/constants';
+// Use ZeRoUI for layout: import { renderPage, column, LAYOUT } from '@bug-breeder/zeroui'
 // import { push, pop } from '@zos/router'; // uncomment when you need navigation
 
 Page({
@@ -218,5 +253,4 @@ Page({
 9. **Vibrator must stop** — call `vibrator.stop()` in `onDestroy`.
 10. **Images in `assets/raw/`** — widget `src` paths are relative to this directory.
 11. **Icon path for common target** — Zeus resolves `targets.common` + round platforms to `common.r`. Icon must be at `assets/common.r/icon.png`.
-12. **ZUI layout containers are broken** — `zeppos-zui` `VStack`/`CircularLayout` places all children at `y=0` because it reads child sizes before children are laid out. Use raw `hmUI` with explicit `{ x, y, w, h }` instead.
-13. **`FILL_RECT` touch is unreliable** — `FILL_RECT.addEventListener(hmUI.event.CLICK_UP, fn)` silently fails on device. Always use `hmUI.widget.BUTTON` with `click_func` for tap targets.
+12. **`FILL_RECT` touch is unreliable** — `FILL_RECT.addEventListener(hmUI.event.CLICK_UP, fn)` silently fails on device. Always use `hmUI.widget.BUTTON` with `click_func` for tap targets.

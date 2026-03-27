@@ -1,9 +1,7 @@
-# [APP_NAME]
+# Breathe
 
-> **TODO:** Replace `[APP_NAME]`, `[APP_DESCRIPTION]`, and `[APP_ID]` with your app's details.
-
-**App:** [APP_DESCRIPTION — one sentence]
-**App ID:** [APP_ID — replace `10000001` in `app.json`; get a real ID from the Zepp Open Platform]
+**App:** Haptic-guided breathing exercises for smartwatch
+**App ID:** 10000001 (placeholder — get a real ID from [Zepp Open Platform](https://open.zepp.com/) and replace in `app.json`)
 **Platform:** ZeppOS smartwatches (round OLED, all devices via `common` target)
 **ZeppOS API:** 3.6 compatible / 3.7 target
 
@@ -18,8 +16,6 @@ npm install -g @zeppos/zeus-cli            # ZeppOS build tool (global)
 zeus login                                  # required for device preview
 ```
 
-Get a real App ID: [Zepp Open Platform](https://open.zepp.com/) → replace `10000001` in `app.json`.
-
 ---
 
 ## Platform Constraints
@@ -27,12 +23,12 @@ Get a real App ID: [Zepp Open Platform](https://open.zepp.com/) → replace `100
 **Know these before writing any code:**
 
 - **Runtime:** QuickJS (ES2020 subset) — no DOM, no Node.js, no browser APIs
-- **UI:** Absolute pixel layout — no flexbox, no CSS. All positions are `{ x, y, w, h }` numbers.
-  - Use `zeppos-zui` components (`CircularLayout`, `VStack`, `Text`, `Button`, etc.) for declarative UI
-  - Use raw `@zos/ui` (`hmUI`) widgets for low-level or performance-sensitive rendering
-- **Imports:** All ZeppOS platform APIs are `@zos/*`. ZUI components from `zeppos-zui`.
-- **Display:** Round OLED, 480px design canvas. Use `px()` for auto-scaling. **Black background saves battery** — OLED turns off black pixels.
-- **App-services:** Single-shot — `onInit` runs once. Use alarm-chain (`@zos/alarm`) for recurring behavior.
+- **UI:** Use ZeRoUI (`@bug-breeder/zeroui`) for all page layout.
+  - `import { renderPage, column, LAYOUT } from '@bug-breeder/zeroui'`
+  - Raw `@zos/ui` (`hmUI`) only for widgets ZeRoUI doesn't cover (IMG, ARC, SCROLL_LIST, etc.)
+- **Imports:** All ZeppOS platform APIs are `@zos/*`. UI library is `@bug-breeder/zeroui`.
+- **Display:** Round OLED, 480px design canvas. **Black background saves battery** — OLED turns off black pixels.
+- **App-services:** Single-shot — `onInit` runs once, 600ms timeout. Use alarm-chain (`@zos/alarm`) for recurring behavior.
 
 ---
 
@@ -46,7 +42,7 @@ pages/
 app-service/
   index.js              Background service scaffold (alarm-chain pattern)
 utils/
-  constants.js          DEVICE_WIDTH/HEIGHT, COLOR tokens (for raw hmUI), TYPOGRAPHY
+  constants.js          DEVICE_WIDTH/HEIGHT, supplemental COLOR tokens (for raw hmUI)
   storage.js            LocalStorage wrapper — get(), set(), getKey()
 assets/
   common.r/             Target-specific assets (zeus resolves common + round → common.r)
@@ -93,7 +89,7 @@ assets/
 
 3. **Module-level vars persist across page visits** — `let x = 0` at module scope is NOT reset when the user navigates away and returns. Reset ALL state explicitly in `onInit()`.
 
-4. **App-service is single-shot** — `onInit` runs once. For recurring behavior use:
+4. **App-service is single-shot** — `onInit` runs once (600ms timeout). For recurring behavior use:
 
    ```js
    setAlarm({ url: 'app-service/index', delay: 300 }); // from '@zos/alarm'
@@ -101,7 +97,7 @@ assets/
 
    `setInterval` is unreliable in services.
 
-5. **Black background is mandatory** — Use `COLOR.BG` (`0x000000`) or ZUI's `backgroundColors.primary` on every page. OLED panels consume zero power for black pixels.
+5. **Black background is mandatory** — Use `COLOR.BG` (`0x000000`) from `@bug-breeder/zeroui` on every page. OLED panels consume zero power for black pixels.
 
 6. **Vibrator must be stopped** — Starting a `Vibrator` and navigating away without calling `vibrator.stop()` in `onDestroy` leaves it running indefinitely.
 

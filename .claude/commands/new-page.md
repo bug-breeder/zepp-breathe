@@ -1,118 +1,69 @@
+---
+name: new-page
+description: Scaffold a new ZeppOS page using ZeRoUI. Creates the page file and registers it in app.json.
+argument-hint: <PageName>
+context: fork
+---
+
 Scaffold a new ZeppOS page: $ARGUMENTS
 
-Follow these steps exactly in order. Do not skip any step.
+**Derive names from `$ARGUMENTS`:**
 
----
+- PascalCase (e.g. `TimerSelect`) → used in file comment and log prefix
+- kebab-case (e.g. `timer-select`) → directory name
+- File path: `pages/<kebab-case>/index.js`
+- Registration path: `pages/<kebab-case>/index` (no .js extension — for app.json)
 
-## Step 1: Determine names
-
-From `$ARGUMENTS`, derive:
-
-- **PascalCase name** for use in comments (e.g. `Settings`, `TimerSelect`)
-- **kebab-case path** for the file system (e.g. `settings`, `timer-select`)
-- **File path:** `pages/<kebab-case>/index.js`
-- **Registration path:** `pages/<kebab-case>/index` (no .js extension — for app.json)
-
----
-
-## Step 2: Create the page file
-
-Create `pages/<kebab-case>/index.js` with this exact content (replace `[PageName]` throughout):
+**Create `pages/<kebab-case>/index.js`:**
 
 ```js
 /**
- * [PageName] page
+ * [PascalCase] page
  */
+import { renderPage, column, LAYOUT } from '@bug-breeder/zeroui';
+// import { push, pop } from '@zos/router'; // uncomment when needed
 
-import { CircularLayout, VStack, Text, textColors } from 'zeppos-zui';
-// import { push, pop } from '@zos/router'; // uncomment when you need navigation
-
-// Module-level state — MUST be reset in onInit (persists across page visits)
-let pageRoot = null;
+// Module-level state — MUST reset in onInit (persists across page visits)
+let col = null;
 
 Page({
   onInit(params) {
-    // Reset module-level state
-    pageRoot = null;
+    col = null;
 
-    // Parse navigation params — always guard with try/catch
     try {
       const p = params ? JSON.parse(params) : {};
-      console.log('[[PageName]] onInit params:', JSON.stringify(p));
+      console.log('[[PascalCase]] onInit', p);
     } catch {
-      console.log('[[PageName]] onInit: no params');
+      console.log('[[PascalCase]] onInit: no params');
     }
   },
 
   build() {
-    console.log('[[PageName]] build');
+    col = column(LAYOUT.FULL.MAIN, { scrollable: true });
 
-    pageRoot = new CircularLayout({
-      safeAreaEnabled: true,
-      centerContent: false,
-      edgeMargin: 8,
-      verticalAlignment: 'center',
-      children: [
-        new VStack({
-          spacing: 16,
-          alignment: 'center',
-          children: [
-            new Text({
-              text: '[PageName]',
-              textStyle: 'title',
-              color: textColors.title,
-              align: 'center',
-            }),
-          ],
-        }),
-      ],
+    renderPage({
+      layout: LAYOUT.FULL,
+      title: '[PascalCase]',
+      buildFn() {
+        col.sectionLabel('Section');
+        col.chip('Item', { onPress: () => {} });
+        col.finalize();
+      },
     });
-
-    pageRoot.mount();
   },
 
   onDestroy() {
-    console.log('[[PageName]] onDestroy');
-
-    if (pageRoot) {
-      pageRoot.destroy();
-      pageRoot = null;
+    if (col) {
+      col.destroyAll();
+      col = null;
     }
-
-    // Also clean up if used:
-    //   offGesture() / offKey() — from '@zos/interaction'
-    //   vibrator.stop()         — if Vibrator was started
+    // offGesture(); offKey(); vibrator.stop(); — if used
   },
 });
 ```
 
----
+**Register in `app.json`:** Add `"pages/<kebab-case>/index"` to `targets.common.module.page.pages`.
 
-## Step 3: Register in app.json
+**Run:** `npm run lint` — expect 0 errors.
 
-Open `app.json`. Find the `targets.common.module.page.pages` array and add the new page path (no .js extension):
-
-```json
-"page": {
-  "pages": [
-    "pages/home/index",
-    "pages/<kebab-case>/index"
-  ]
-}
-```
-
----
-
-## Step 4: Verify
-
-Run `npm run lint` — expect 0 errors.
-
----
-
-## Step 5: Confirm
-
-Report back:
-
-- Created file: `pages/<kebab-case>/index.js`
-- Registered in `app.json`: `"pages/<kebab-case>/index"` added to pages array
-- Lint: passes
+**Report:** created file path, app.json entry added, lint result.
