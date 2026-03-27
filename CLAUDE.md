@@ -16,6 +16,8 @@ npm install -g @zeppos/zeus-cli            # ZeppOS build tool (global)
 zeus login                                  # required for device preview
 ```
 
+In Claude Code: `/plugin marketplace add bug-breeder/zepphyr` then `/plugin install zepphyr@zepphyr`
+
 ---
 
 ## Platform Constraints
