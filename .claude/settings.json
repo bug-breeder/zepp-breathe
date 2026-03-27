@@ -17,5 +17,13 @@
       "Bash(gh pr:*)",
       "Bash(gh auth:*)"
     ]
+  },
+  "extraKnownMarketplaces": {
+    "zepphyr": {
+      "source": { "source": "github", "repo": "bug-breeder/zepphyr" }
+    }
+  },
+  "enabledPlugins": {
+    "zepphyr@zepphyr": true
   }
 }
