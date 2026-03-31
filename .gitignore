@@ -12,5 +12,6 @@ selenium-debug.log
 *.suo
 *.ntvs*
 *.njsproj
+*.sln
 *.sln.worktrees/
 .superpowers/
