@@ -30,20 +30,15 @@ For full platform gotchas and API reference: `/zeppos` or `/zeppos [question]`
 
 ## Dev Commands
 
-| Command            | What it does                                    |
-| ------------------ | ----------------------------------------------- |
-| `npm run dev`      | Build + launch in simulator                     |
-| `npm run build`    | Build `.zab` installer → `dist/`                |
-| `npm run preview`  | Build + push to device                          |
-| `npm run verify`   | Lint + format check + build — run before commit |
-| `npm run lint:fix` | Auto-fix lint errors                            |
-| `npm run format`   | Auto-format all files                           |
+See `@package.json` for all available scripts. Key ones: `dev` (simulator), `build` (dist), `preview` (device), `verify` (lint + format + build — run before commit).
 
 ---
 
 ## Quality Gates
 
 Run `npm run verify` before every commit. No unused `catch (e)` binding — use `catch { }`.
+
+**When compacting:** preserve the current branch name, which files were modified, and the last `npm run verify` result.
 
 ---
 
@@ -62,3 +57,5 @@ Run `npm run verify` before every commit. No unused `catch (e)` binding — use 
 | `/zepphyr:zeppos [question]`   | ZeppOS platform cheatsheet + gotchas              |
 | `/zepphyr:new-page <PageName>` | Scaffold a new page and register it in `app.json` |
 | `/zepphyr:review [PR#]`        | ZeppOS-aware automated PR review                  |
+
+For large investigations (reading many files, tracing a bug across pages), ask Claude to use a subagent so the exploration doesn't consume your main context.
