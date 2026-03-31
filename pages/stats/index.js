@@ -1,22 +1,23 @@
 // pages/stats/index.js
 import hmUI from '@zos/ui';
-import { UI, COLOR } from '@bug-breeder/zeroui';
+import { COLOR, LAYOUT, renderPage } from '@bug-breeder/zeroui';
 import { get, getKey } from '../../utils/storage';
 import { getDateString, getDateNDaysAgo, getTodayDOW } from '../../utils/date';
 
 // ─── Heatmap grid constants ────────────────────────────────────────────────────
 // 7 columns (Mon–Sun) × 4 rows = 28 days, cell 30×30 with 4px gap
-const GRID_LEFT_X = 123; // (480 - (7*30 + 6*4)) / 2 = (480 - 234) / 2
+const GRID_LEFT_X = 123;
 const GRID_TOP_Y = 134;
 const CELL_SIZE = 30;
-const CELL_STEP = 34; // CELL_SIZE + 4px gap
+const CELL_STEP = 34;
 
 // ─── Module-level state (ALL reset in onInit) ─────────────────────────────────
 let streakDays = 0;
 let totalSessions = 0;
 let sessionHistory = {};
-let todayDOW = 0; // 0=Mon … 6=Sun
+let todayDOW = 0;
 let todayStr = '';
+let col = null;
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -33,10 +34,9 @@ function getMotivationalMessage(streak, sessions) {
 function buildHeatmap() {
   const DOW_LABELS = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
 
-  // Day-of-week column labels
-  DOW_LABELS.forEach((label, col) => {
+  DOW_LABELS.forEach((label, c) => {
     hmUI.createWidget(hmUI.widget.TEXT, {
-      x: GRID_LEFT_X + col * CELL_STEP,
+      x: GRID_LEFT_X + c * CELL_STEP,
       y: 106,
       w: CELL_SIZE,
       h: 24,
@@ -47,31 +47,27 @@ function buildHeatmap() {
     });
   });
 
-  // Heatmap cells
-  // row=0 is the oldest week (top), row=3 is the current week (bottom).
-  // Cell (row, col) maps to daysAgo = (3 - row) * 7 + (todayDOW - col).
-  // daysAgo < 0 → future slot; daysAgo = 0 → today; daysAgo > 0 → past day.
   for (let row = 0; row < 4; row++) {
-    for (let col = 0; col < 7; col++) {
-      const daysAgo = (3 - row) * 7 + (todayDOW - col);
+    for (let c = 0; c < 7; c++) {
+      const daysAgo = (3 - row) * 7 + (todayDOW - c);
       const isToday = daysAgo === 0;
       const isFuture = daysAgo < 0;
 
       let color;
       if (isFuture) {
-        color = COLOR.SURFACE; // same as missed — avoids confusing empty slots
+        color = COLOR.SURFACE;
       } else {
         const dateStr = isToday ? todayStr : getDateNDaysAgo(daysAgo);
         const practiced = sessionHistory[dateStr] !== undefined && sessionHistory[dateStr] > 0;
         if (isToday) {
-          color = practiced ? 0x52d985 : 0x2c2c2e; // lighter green or subtle dim highlight
+          color = practiced ? COLOR.PRIMARY_LIGHT : COLOR.SURFACE_PRESSED;
         } else {
           color = practiced ? COLOR.PRIMARY : COLOR.SURFACE;
         }
       }
 
       hmUI.createWidget(hmUI.widget.FILL_RECT, {
-        x: GRID_LEFT_X + col * CELL_STEP,
+        x: GRID_LEFT_X + c * CELL_STEP,
         y: GRID_TOP_Y + row * CELL_STEP,
         w: CELL_SIZE,
         h: CELL_SIZE,
@@ -86,6 +82,7 @@ function buildHeatmap() {
 
 Page({
   onInit() {
+    col = null;
     streakDays = get(getKey('streak_days'), 0);
     totalSessions = get(getKey('total_sessions'), 0);
     sessionHistory = get(getKey('session_history'), {});
@@ -94,63 +91,43 @@ Page({
   },
 
   build() {
-    UI.bg();
-    UI.title('Your Journey');
+    renderPage({
+      layout: LAYOUT.NO_ACTION,
+      title: 'Your Journey',
+      scrollable: true,
+      buildFn: (c) => {
+        col = c;
 
-    // Heatmap (DOW labels + grid)
-    buildHeatmap();
+        // Heatmap drawn at absolute positions — advance column past the area.
+        // DOW labels at y=106, grid y=134..266. MAIN starts at y=74.
+        // Spacer: 106 - 74 = 32 to reach DOW labels row.
+        col.spacer(32);
+        buildHeatmap();
+        // DOW labels h=24 + gap 4 + 4 rows × 34 = 164 → advance past grid
+        col.spacer(164);
 
-    // Streak number — large, orange when active, gray when zero
-    hmUI.createWidget(hmUI.widget.TEXT, {
-      x: 60,
-      y: 272,
-      w: 360,
-      h: 60,
-      text: String(streakDays),
-      text_size: 52,
-      color: streakDays > 0 ? COLOR.WARNING : 0x636366,
-      align_h: hmUI.align.CENTER_H,
-    });
-
-    // Streak label
-    hmUI.createWidget(hmUI.widget.TEXT, {
-      x: 60,
-      y: 336,
-      w: 360,
-      h: 30,
-      text: streakDays === 1 ? 'day streak' : 'days streak',
-      text_size: 24,
-      color: COLOR.TEXT_MUTED,
-      align_h: hmUI.align.CENTER_H,
-    });
-
-    // Motivational message
-    hmUI.createWidget(hmUI.widget.TEXT, {
-      x: 60,
-      y: 370,
-      w: 360,
-      h: 30,
-      text: getMotivationalMessage(streakDays, totalSessions),
-      text_size: 24,
-      color: COLOR.TEXT_MUTED,
-      align_h: hmUI.align.CENTER_H,
-    });
-
-    // Total sessions — secondary info
-    const sessText = totalSessions === 1 ? '1 session total' : `${totalSessions} sessions total`;
-    hmUI.createWidget(hmUI.widget.TEXT, {
-      x: 60,
-      y: 404,
-      w: 360,
-      h: 28,
-      text: sessText,
-      text_size: 22,
-      color: 0x636366,
-      align_h: hmUI.align.CENTER_H,
+        // Stats section — y-tracked by column from here
+        col.card({
+          title: streakDays === 1 ? 'day streak' : 'days streak',
+          value: String(streakDays),
+          valueColor: streakDays > 0 ? 'warning' : 'muted',
+        });
+        col.text(getMotivationalMessage(streakDays, totalSessions), {
+          size: 'caption',
+          color: 'muted',
+        });
+        col.text(totalSessions === 1 ? '1 session total' : `${totalSessions} sessions total`, {
+          size: 'caption',
+          color: 'muted',
+        });
+        col.finalize();
+      },
     });
   },
 
   onDestroy() {
+    col?.destroyAll();
+    col = null;
     streakDays = 0;
     totalSessions = 0;
     sessionHistory = {};
