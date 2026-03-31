@@ -56,8 +56,8 @@ Run `npm run verify` before every commit. No unused `catch (e)` binding — use 
 
 ## Slash Commands
 
-| Command                | When to use                                       |
-| ---------------------- | ------------------------------------------------- |
-| `/zeppos [question]`   | ZeppOS platform cheatsheet + gotchas              |
-| `/new-page <PageName>` | Scaffold a new page and register it in `app.json` |
-| `/review [PR#]`        | ZeppOS-aware automated PR review                  |
+| Command                        | When to use                                       |
+| ------------------------------ | ------------------------------------------------- |
+| `/zeppos [question]`           | ZeppOS platform cheatsheet + gotchas              |
+| `/zepphyr:new-page <PageName>` | Scaffold a new page and register it in `app.json` |
+| `/zepphyr:review [PR#]`        | ZeppOS-aware automated PR review                  |
