@@ -1,7 +1,7 @@
 // pages/setup/index.js
 import { push } from '@zos/router';
 import { get, getKey } from '../../utils/storage';
-import { LAYOUT, SPACING, renderPage, UI } from '@bug-breeder/zeroui';
+import { LAYOUT, SPACING, renderPage } from '@bug-breeder/zeroui';
 import {
   TECHNIQUE_NAMES,
   TECHNIQUE_KEYS,
@@ -15,15 +15,9 @@ let selectedRounds = 5;
 let col = null;
 
 function rebuild() {
-  if (col) {
-    // Subsequent calls: wipe chips only, keep VIEW_CONTAINER z-order intact
-    col.clearContent();
-  } else {
-    // First call (from buildFn inside renderPage): create the scrollable Column
-    col = UI.column(LAYOUT.FULL.MAIN, { scrollable: true });
-  }
+  col.clearContent();
 
-  col.sectionLabel('Technique');
+  col.label('Technique');
   TECHNIQUE_KEYS.forEach((key) => {
     col.chip(TECHNIQUE_NAMES[key], {
       selected: selectedTechnique === key,
@@ -35,7 +29,7 @@ function rebuild() {
   });
 
   col.spacer(SPACING.sectionGap);
-  col.sectionLabel('Rounds');
+  col.label('Rounds');
   col.chipRow(ROUNDS_OPTIONS, {
     selected: selectedRounds,
     onPress: (v) => {
@@ -44,7 +38,6 @@ function rebuild() {
     },
   });
 
-  // Required when scrollable=true: sets VIEW_CONTAINER total scroll height
   col.finalize();
 }
 
@@ -73,14 +66,15 @@ Page({
           });
         },
       },
-      buildFn: () => rebuild(), // called before masks/title/action → correct z-order
+      buildFn: (c) => {
+        col = c;
+        rebuild();
+      },
     });
   },
 
   onDestroy() {
-    if (col) {
-      col.destroyAll();
-      col = null;
-    }
+    col?.destroyAll();
+    col = null;
   },
 });
