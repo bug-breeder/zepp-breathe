@@ -37,6 +37,7 @@ For full platform gotchas and API reference: `/zeppos` or `/zeppos [question]`
 | `npm run preview`  | Build + push to device                          |
 | `npm run verify`   | Lint + format check + build — run before commit |
 | `npm run lint:fix` | Auto-fix lint errors                            |
+| `npm run format`   | Auto-format all files                           |
 
 ---
 
@@ -58,6 +59,6 @@ Run `npm run verify` before every commit. No unused `catch (e)` binding — use 
 
 | Command                        | When to use                                       |
 | ------------------------------ | ------------------------------------------------- |
-| `/zeppos [question]`           | ZeppOS platform cheatsheet + gotchas              |
+| `/zepphyr:zeppos [question]`   | ZeppOS platform cheatsheet + gotchas              |
 | `/zepphyr:new-page <PageName>` | Scaffold a new page and register it in `app.json` |
 | `/zepphyr:review [PR#]`        | ZeppOS-aware automated PR review                  |
