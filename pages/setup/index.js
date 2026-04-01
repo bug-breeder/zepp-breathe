@@ -1,7 +1,7 @@
 // pages/setup/index.js
 import { push } from '@zos/router';
 import { get, getKey } from '../../utils/storage';
-import { LAYOUT, SPACING, renderPage } from '@bug-breeder/zeroui';
+import { LAYOUT, RADIUS, SPACING, renderPage } from '@bug-breeder/zeroui';
 import {
   TECHNIQUE_NAMES,
   TECHNIQUE_KEYS,
@@ -20,6 +20,8 @@ function rebuild() {
   col.label('Technique');
   TECHNIQUE_KEYS.forEach((key) => {
     col.chip(TECHNIQUE_NAMES[key], {
+      h: 132,
+      radius: RADIUS.chip,
       selected: selectedTechnique === key,
       onPress: () => {
         selectedTechnique = key;
@@ -31,6 +33,8 @@ function rebuild() {
   col.spacer(SPACING.sectionGap);
   col.label('Rounds');
   col.chipRow(ROUNDS_OPTIONS, {
+    h: 96,
+    radius: RADIUS.chip,
     selected: selectedRounds,
     onPress: (v) => {
       selectedRounds = v;
@@ -52,8 +56,8 @@ Page({
 
   build() {
     renderPage({
-      layout: LAYOUT.FULL,
-      title: 'Breathing Setup',
+      layout: LAYOUT.NO_TITLE,
+      scrollable: true,
       action: {
         text: 'Start',
         onPress: () => {
