@@ -14,6 +14,7 @@ paths: pages/**/*.js
 - `vibrator.stop()` in `onDestroy()` if started — vibration continues after page exit otherwise
 
 ## Screen Physical Dimensions
+
 - Target: Amazfit Balance (1.5", 480×480, 453 PPI) and GTR Mini (1.32", 466×466, 500 PPI)
 - 1 design unit ≈ 0.052–0.056mm physical
 - Minimum tap target: 125 design units (~7mm) for interactive elements
