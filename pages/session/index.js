@@ -285,9 +285,9 @@ Page({
     // Phase label (e.g. "INHALE") — muted, small caps
     phaseTextWidget = hmUI.createWidget(hmUI.widget.TEXT, {
       x: 0,
-      y: 162,
+      y: 142,
       w: DEVICE_WIDTH,
-      h: 36,
+      h: 40,
       text: '',
       text_size: TYPOGRAPHY.caption,
       color: COLOR.TEXT_MUTED,
@@ -297,9 +297,9 @@ Page({
     // Countdown number (large, center)
     countdownTextWidget = hmUI.createWidget(hmUI.widget.TEXT, {
       x: 0,
-      y: 204,
+      y: 190,
       w: DEVICE_WIDTH,
-      h: 76,
+      h: 100,
       text: '',
       text_size: TYPOGRAPHY.largeTitle,
       color: COLOR.TEXT,
@@ -309,9 +309,9 @@ Page({
     // Round counter (e.g. "2 / 5")
     roundCounterWidget = hmUI.createWidget(hmUI.widget.TEXT, {
       x: 0,
-      y: 288,
+      y: 298,
       w: DEVICE_WIDTH,
-      h: 36,
+      h: 40,
       text: '',
       text_size: TYPOGRAPHY.caption,
       color: COLOR.TEXT_MUTED,
@@ -334,7 +334,7 @@ Page({
       x: 0,
       y: 254,
       w: DEVICE_WIDTH,
-      h: 56,
+      h: 80,
       text: '',
       text_size: TYPOGRAPHY.title,
       color: COLOR.TEXT,
