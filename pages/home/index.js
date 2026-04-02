@@ -39,12 +39,14 @@ Page({
           variant: 'primary',
           radius: RADIUS.pill,
           h: 72,
+          w: 192,
           onPress: () => push({ url: 'pages/setup/index' }),
         });
         col.chip('Stats', {
           variant: 'ghost',
           radius: RADIUS.pill,
           h: 48,
+          w: 160,
           onPress: () => push({ url: 'pages/stats/index' }),
         });
       },
