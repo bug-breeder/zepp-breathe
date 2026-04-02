@@ -86,7 +86,6 @@ Page({
       scrollable: true,
       buildFn: (c) => {
         col = c;
-        col.spacer(24);
         col.text(String(streakDays), {
           size: 'title',
           color: streakDays > 0 ? 'warning' : 'muted',
@@ -95,7 +94,7 @@ Page({
           size: 'subheadline',
           color: 'muted',
         });
-        col.spacer(SPACING.md); // 24px gap before heatmap
+        col.spacer(SPACING.sm); // 12px gap before heatmap
 
         const heatmapStartY = col.currentY;
         buildHeatmap(heatmapStartY);
