@@ -20,7 +20,7 @@ function rebuild() {
   col.label('Technique');
   TECHNIQUE_KEYS.forEach((key) => {
     col.chip(TECHNIQUE_NAMES[key], {
-      h: 132,
+      h: 72,
       radius: RADIUS.chip,
       selected: selectedTechnique === key,
       onPress: () => {
