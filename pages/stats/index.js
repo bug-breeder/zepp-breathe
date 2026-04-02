@@ -94,8 +94,6 @@ Page({
           size: 'subheadline',
           color: 'muted',
         });
-        col.spacer(SPACING.sm); // 12px gap before heatmap
-
         const heatmapStartY = col.currentY;
         buildHeatmap(heatmapStartY);
 
