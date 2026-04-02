@@ -83,7 +83,7 @@ Page({
   build() {
     renderPage({
       layout: LAYOUT.MINIMAL,
-      scrollable: true,
+      scrollable: false,
       buildFn: (c) => {
         col = c;
         col.text(String(streakDays), {
@@ -102,7 +102,6 @@ Page({
         // Advance column past heatmap:
         // DOW h=36 + xs gap(6) + 4 rows × CELL_STEP(42) = 42 + 168 = 210
         col.spacer(210);
-        col.finalize();
       },
     });
   },
