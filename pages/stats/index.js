@@ -1,19 +1,17 @@
 // pages/stats/index.js
 import hmUI from '@zos/ui';
-import { COLOR, LAYOUT, renderPage } from '@bug-breeder/zeroui';
+import { COLOR, LAYOUT, TYPOGRAPHY, SPACING, renderPage } from '@bug-breeder/zeroui';
 import { get, getKey } from '../../utils/storage';
 import { getDateString, getDateNDaysAgo, getTodayDOW } from '../../utils/date';
 
 // ─── Heatmap grid constants ────────────────────────────────────────────────────
-// 7 columns (Mon–Sun) × 4 rows = 28 days, cell 30×30 with 4px gap
-const GRID_LEFT_X = 123;
-const GRID_TOP_Y = 134;
-const CELL_SIZE = 30;
-const CELL_STEP = 34;
+// 7 columns × 36px + 6 × 6px gap = 288px total; centered: (480-288)/2 = 96
+const GRID_LEFT_X = 96;
+const CELL_SIZE = 36; // was 30
+const CELL_STEP = 42; // was 34 (36 cell + 6 gap)
 
 // ─── Module-level state (ALL reset in onInit) ─────────────────────────────────
 let streakDays = 0;
-let totalSessions = 0;
 let sessionHistory = {};
 let todayDOW = 0;
 let todayStr = '';
@@ -21,31 +19,24 @@ let col = null;
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function getMotivationalMessage(streak, sessions) {
-  if (streak === 0) return 'Start wherever you are';
-  if (streak === 1) return sessions > 1 ? 'Back in the flow' : 'Day one. The hardest one.';
-  if (streak <= 3) return 'Momentum is building';
-  if (streak <= 7) return 'Your brain is adapting';
-  if (streak <= 13) return 'ADHD and consistent. Yes.';
-  if (streak <= 20) return 'Two weeks. Real habit forming.';
-  return 'This is your superpower now';
-}
-
-function buildHeatmap() {
+function buildHeatmap(startY) {
   const DOW_LABELS = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+  const dowH = TYPOGRAPHY.caption; // 36
 
   DOW_LABELS.forEach((label, c) => {
     hmUI.createWidget(hmUI.widget.TEXT, {
       x: GRID_LEFT_X + c * CELL_STEP,
-      y: 106,
+      y: startY,
       w: CELL_SIZE,
-      h: 24,
+      h: dowH,
       text: label,
-      text_size: 22,
+      text_size: TYPOGRAPHY.caption,
       color: COLOR.TEXT_MUTED,
       align_h: hmUI.align.CENTER_H,
     });
   });
+
+  const gridY = startY + dowH + SPACING.xs; // 36 + 6 = 42px below startY
 
   for (let row = 0; row < 4; row++) {
     for (let c = 0; c < 7; c++) {
@@ -68,7 +59,7 @@ function buildHeatmap() {
 
       hmUI.createWidget(hmUI.widget.FILL_RECT, {
         x: GRID_LEFT_X + c * CELL_STEP,
-        y: GRID_TOP_Y + row * CELL_STEP,
+        y: gridY + row * CELL_STEP,
         w: CELL_SIZE,
         h: CELL_SIZE,
         radius: 6,
@@ -84,7 +75,6 @@ Page({
   onInit() {
     col = null;
     streakDays = get(getKey('streak_days'), 0);
-    totalSessions = get(getKey('total_sessions'), 0);
     sessionHistory = get(getKey('session_history'), {});
     todayStr = getDateString();
     todayDOW = getTodayDOW();
@@ -92,35 +82,25 @@ Page({
 
   build() {
     renderPage({
-      layout: LAYOUT.NO_ACTION,
-      title: 'Your Journey',
-      scrollable: true,
+      layout: LAYOUT.MINIMAL,
+      scrollable: false,
       buildFn: (c) => {
         col = c;
-
-        // Heatmap drawn at absolute positions — advance column past the area.
-        // DOW labels at y=106, grid y=134..266. MAIN starts at y=74.
-        // Spacer: 106 - 74 = 32 to reach DOW labels row.
-        col.spacer(32);
-        buildHeatmap();
-        // DOW labels h=24 + gap 4 + 4 rows × 34 = 164 → advance past grid
-        col.spacer(164);
-
-        // Stats section — y-tracked by column from here
-        col.card({
-          title: streakDays === 1 ? 'day streak' : 'days streak',
-          value: String(streakDays),
-          valueColor: streakDays > 0 ? 'warning' : 'muted',
+        col.text(String(streakDays), {
+          size: 'title',
+          color: streakDays > 0 ? 'warning' : 'muted',
         });
-        col.text(getMotivationalMessage(streakDays, totalSessions), {
-          size: 'caption',
+        col.text(streakDays === 1 ? 'day streak' : 'days streak', {
+          size: 'subheadline',
+          h: 60, // extra height so 'y' descender isn't clipped by widget bounds
           color: 'muted',
         });
-        col.text(totalSessions === 1 ? '1 session total' : `${totalSessions} sessions total`, {
-          size: 'caption',
-          color: 'muted',
-        });
-        col.finalize();
+        const heatmapStartY = col.currentY;
+        buildHeatmap(heatmapStartY);
+
+        // Advance column past heatmap:
+        // DOW h=36 + xs gap(6) + 4 rows × CELL_STEP(42) = 42 + 168 = 210
+        col.spacer(210);
       },
     });
   },
@@ -129,7 +109,6 @@ Page({
     col?.destroyAll();
     col = null;
     streakDays = 0;
-    totalSessions = 0;
     sessionHistory = {};
     todayDOW = 0;
     todayStr = '';
