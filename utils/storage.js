@@ -56,7 +56,7 @@ export function get(key, defaultValue) {
   try {
     const s = getStorage();
     if (!s) return defaultValue;
-    return s.getItem(key, defaultValue);
+    return s.getItem(key) ?? defaultValue;
   } catch (e) {
     console.log('storage.get error:', key, e);
     return defaultValue;

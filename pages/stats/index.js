@@ -92,6 +92,7 @@ Page({
         });
         col.text(streakDays === 1 ? 'day streak' : 'days streak', {
           size: 'subheadline',
+          h: 60, // extra height so 'y' descender isn't clipped by widget bounds
           color: 'muted',
         });
         const heatmapStartY = col.currentY;
